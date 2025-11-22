@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: authService
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/community-skill-db
+    username: postgres
+    password: Neeraj2001@
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+
+app:
+  jwt:
+    secret: "vLgKIPb5hWlvTlh2+eP2K45TqN9tYHg2pHQfYp6J7Ps="
+    access-token-expiration-ms: 900000
+    refresh-token-expiration-ms: 2592000000
+
+security:
+  allowed-origins: "*"
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
