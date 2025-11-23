@@ -1,9 +1,10 @@
 spring:
   application:
-    name: authService
+    name: userprofile
+
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/community-skill-db
+    url: jdbc:postgresql://localhost:5432/userprofile_DB
     username: postgres
     password: Neeraj2001@
     driver-class-name: org.postgresql.Driver
@@ -16,14 +17,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
 
-app:
-  jwt:
-    secret: "vLgKIPb5hWlvTlh2+eP2K45TqN9tYHg2pHQfYp6J7Ps="
-    access-token-expiration-ms: 900000
-    refresh-token-expiration-ms: 2592000000
-
-security:
-  allowed-origins: "*"
 
 
 eureka:
@@ -32,4 +25,10 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
 
 server:
-  port: 8081
+  port: 8082
+
+
+cloudinary:
+  cloud-name: ${CLOUD_NAME}
+  api-key: ${API_KEY}
+  api-secret: ${API_SECRET}

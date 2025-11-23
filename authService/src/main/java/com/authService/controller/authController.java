@@ -3,7 +3,9 @@ package com.authService.controller;
 import com.authService.DTO.jwt.RefreshRequest;
 import com.authService.DTO.login.LoginRequest;
 import com.authService.DTO.signup.SignupRequest;
+import com.authService.model.User;
 import com.authService.repository.RefreshTokenRepository;
+import com.authService.repository.authRepository;
 import com.authService.service.authService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,10 +50,10 @@ public class authController {
        return ResponseEntity.ok("Successfully logged out");
     }
 
-    @GetMapping("/{userId}/validate")
-    public ResponseEntity<Boolean> validateUser(@PathVariable UUID userId) {
-       return ResponseEntity.ok( authService.existByUserId(userId));
-
+    @GetMapping("/exists/{userId}")
+    public ResponseEntity<Boolean> checkUserExists(@PathVariable UUID userId) {
+        boolean exists = authService.existByUserId(userId);
+        return ResponseEntity.ok(exists);
     }
 
 }

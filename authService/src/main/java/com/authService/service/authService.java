@@ -178,6 +178,6 @@ public class authService {
     }
 
     public Boolean existByUserId(UUID userId) {
-        return authRepository.existsByUserId(userId);
+        return authRepository.existsById(userId);
     }
 }
