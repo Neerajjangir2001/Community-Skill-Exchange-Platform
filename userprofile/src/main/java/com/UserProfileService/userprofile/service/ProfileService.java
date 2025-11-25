@@ -4,6 +4,9 @@ package com.UserProfileService.userprofile.service;
 import com.UserProfileService.userprofile.DTO.CreateProfileDto;
 import com.UserProfileService.userprofile.DTO.ProfileDto;
 import com.UserProfileService.userprofile.DTO.UpdateProfileDto;
+import com.UserProfileService.userprofile.exceptionHandle.allExceprionHandles.ProfileNotFoundException;
+import com.UserProfileService.userprofile.exceptionHandle.allExceprionHandles.UserAlreadyExistsException;
+import com.UserProfileService.userprofile.exceptionHandle.allExceprionHandles.UserNotFound;
 import com.UserProfileService.userprofile.mapper.UserProfileMapper;
 import com.UserProfileService.userprofile.model.UserProfile;
 import com.UserProfileService.userprofile.repository.UserProfileRepository;
@@ -29,11 +32,11 @@ public class ProfileService {
     public ProfileDto createProfile(CreateProfileDto profileDto) {
 
         if (!webClient.validateUser(profileDto.userId())){
-            throw new RuntimeException("Invalid user id");
+            throw new UserNotFound("Invalid user id");
         }
 
         if (userProfileRepository.findByUserId(profileDto.userId()).isPresent()){
-            throw new RuntimeException("User already exists");
+            throw new UserAlreadyExistsException("User already exists");
         }
 
         UserProfile userProfile = UserProfile.builder()
@@ -51,10 +54,10 @@ public class ProfileService {
     }
     public ProfileDto updateProfile(UpdateProfileDto dto ,  UUID userId) {
         if (!webClient.validateUser(userId))
-            throw new IllegalArgumentException("User does not exist");
+            throw new UserNotFound("User does not exist");
 
         UserProfile userProfile = userProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new NoSuchElementException("Profile not found"));
+                .orElseThrow(ProfileNotFoundException::new);
 
 
         if (dto.displayName() != null) userProfile.setDisplayName(dto.displayName());
@@ -72,10 +75,10 @@ public class ProfileService {
     public ProfileDto updateAvatar(UUID userId, String avatarUrl) {
 
         if (!webClient.validateUser(userId))
-            throw new IllegalArgumentException("User does not exist");
+            throw new UserNotFound("User does not exist");
 
         UserProfile p = userProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new NoSuchElementException("Profile not found"));
+                .orElseThrow(ProfileNotFoundException::new);
 
         p.setAvatarUrl(avatarUrl);
         return userProfileMapper.toDto(userProfileRepository.save(p));
@@ -89,10 +92,10 @@ public class ProfileService {
     public ProfileDto getByUserId(UUID userId) {
 
         if (!webClient.validateUser(userId))
-            throw new IllegalArgumentException("User does not exist");
+            throw new UserNotFound("User does not exist");
 
         UserProfile userProfile = userProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new NoSuchElementException("Profile not found"));
+                .orElseThrow(ProfileNotFoundException::new);
 
         return userProfileMapper.toDto(userProfile);
 

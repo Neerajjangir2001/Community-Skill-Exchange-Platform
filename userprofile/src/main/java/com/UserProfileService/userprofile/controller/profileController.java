@@ -6,12 +6,9 @@ import com.UserProfileService.userprofile.DTO.UpdateProfileDto;
 import com.UserProfileService.userprofile.service.CloudinaryService;
 import com.UserProfileService.userprofile.service.ProfileService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Profile;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Map;
 import java.util.UUID;
@@ -27,8 +24,9 @@ public class profileController {
 
 
     @PostMapping
-    public ResponseEntity<ProfileDto> create(@RequestBody CreateProfileDto dto) {
-        return ResponseEntity.status(201).body(profileService.createProfile(dto));
+    public ResponseEntity<?> create(@RequestBody CreateProfileDto dto) {
+        profileService.createProfile(dto);
+        return  ResponseEntity.ok("Profile Created Successfully");
 
     }
 
@@ -38,6 +36,7 @@ public class profileController {
         ProfileDto dto = profileService.getByUserId(userId);
         if (dto == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(dto);
+
     }
 
     @PutMapping("/{userId}")
