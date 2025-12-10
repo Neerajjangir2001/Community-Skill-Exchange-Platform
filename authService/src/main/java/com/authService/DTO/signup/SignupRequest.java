@@ -23,9 +23,9 @@ public class SignupRequest {
     @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&-+=()])(?=\\S+$).{8,20}$",
             message = "Password must contain at least 8 characters, one digit, one uppercase, one lowercase, and one special character, Not Empty")
     private String password;
-    @NotBlank(message = "Name is required")
-    @Size(min = 3, max = 255, message = "Na me must be between 3 and 255 characters")
-    private String displayName;
+//    @NotBlank(message = "Name is required")
+//    @Size(min = 3, max = 255, message = "Na me must be between 3 and 255 characters")
+//    private String displayName;
     private Set<String> roles;
     private boolean enabled;
 //    private LocalDateTime createdDate;

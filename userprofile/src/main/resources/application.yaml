@@ -24,6 +24,11 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
+
+      instance:
+        prefer-ip-address: true          # ✅ Use IP instead of hostname
+        hostname: localhost
+
 server:
   port: 8082
 
@@ -32,3 +37,11 @@ cloudinary:
   cloud-name: ${CLOUD_NAME}
   api-key: ${API_KEY}
   api-secret: ${API_SECRET}
+
+
+
+app:
+  jwt:
+    secret: "bXktc3VwZXItc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tMjAyNA=="
+    access-token-expiration-ms: 3600000
+    refresh-token-expiration-ms: 2592000000

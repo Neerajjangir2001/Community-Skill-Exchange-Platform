@@ -1,0 +1,71 @@
+spring:
+  application:
+    name: skillservice
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/skills_db
+    username: postgres
+    password: Neeraj2001@
+    driver-class-name: org.postgresql.Driver
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+    show-sql: true
+
+
+
+
+opensearch:
+  host: localhost
+  port: 9200
+  scheme: http
+  index: skills
+
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+
+      instance:
+        prefer-ip-address: true          # ✅ Use IP instead of hostname
+        hostname: localhost
+
+server:
+  port: 8086
+
+kafka:
+  bootstrap-servers: localhost:9093
+  topic:
+    skill-events: skill-events
+    skill-updated: skill-updated
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.trusted.packages: "*"
+
+
+app:
+  jwt:
+    secret: "bXktc3VwZXItc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tMjAyNA=="
+    access-token-expiration-ms: 3600000
+    refresh-token-expiration-ms: 2592000000
+
+
+

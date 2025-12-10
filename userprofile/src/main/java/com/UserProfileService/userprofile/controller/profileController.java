@@ -7,14 +7,17 @@ import com.UserProfileService.userprofile.service.CloudinaryService;
 import com.UserProfileService.userprofile.service.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/userProfile")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class profileController {
 
@@ -24,31 +27,57 @@ public class profileController {
 
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody CreateProfileDto dto) {
-        profileService.createProfile(dto);
+    public ResponseEntity<?> create(@RequestBody CreateProfileDto dto, Authentication authentication) {
+
+        UUID userId = UUID.fromString(authentication.getName());
+              profileService.createProfile(dto, userId);
         return  ResponseEntity.ok("Profile Created Successfully");
 
     }
 
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<ProfileDto> getByUser(@PathVariable UUID userId) {
-        ProfileDto dto = profileService.getByUserId(userId);
+    @GetMapping("/userComeByUserId")
+    public ResponseEntity<ProfileDto> getByUser(Authentication authentication) {
+
+        String authenticatedUserId = authentication.getName();
+        UUID uuid = UUID.fromString(String.valueOf(authenticatedUserId));
+
+        ProfileDto dto = profileService.getByUserId(uuid);
         if (dto == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(dto);
 
     }
 
-    @PutMapping("/{userId}")
-    public ResponseEntity<ProfileDto> update(@PathVariable UUID userId, @RequestBody UpdateProfileDto dto) {
-        return ResponseEntity.ok(profileService.updateProfile(dto, userId));
+    @PutMapping("/update")
+    public ResponseEntity<ProfileDto> update( @RequestBody UpdateProfileDto dto,  Authentication authentication) {
+
+        String authenticatedUserId = authentication.getName();
+        UUID user = UUID.fromString(String.valueOf(authenticatedUserId));
+        ProfileDto profileDto = profileService.updateProfile(dto, user);
+        return ResponseEntity.ok(profileDto);
     }
 
-    @PostMapping("/{userId}/avatar")
-    public ResponseEntity<Map<String, String>> upload(@PathVariable UUID userId,
-                                                      @RequestParam("file") MultipartFile file) {
+
+
+    @PostMapping("/users/me/avatar")
+    public ResponseEntity<Map<String, String>> upload(@RequestParam("file") MultipartFile file,
+                                                      Authentication authentication) {
+        String authenticatedUserId = authentication.getName();
+        UUID userId = UUID.fromString(authenticatedUserId);
+
         String url = cloudinaryService.uploadAvatar(userId, file);
-        profileService.updateAvatar(userId, url);
+        profileService.updateAvatar(userId,url);
+
         return ResponseEntity.ok(Map.of("avatarUrl", url));
+    }
+
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ProfileDto>> search(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) Boolean isProvider
+    ) {
+        return ResponseEntity.ok(profileService.searchProfiles(keyword, city, isProvider));
     }
 }

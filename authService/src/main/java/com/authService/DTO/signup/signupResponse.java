@@ -15,7 +15,7 @@ import java.util.UUID;
 public class signupResponse {
     private UUID id;
     private String email;
-    private String displayName;
+//    private String displayName;
     private boolean enabled;
     private Instant createdAt;
     private Instant updatedAt;

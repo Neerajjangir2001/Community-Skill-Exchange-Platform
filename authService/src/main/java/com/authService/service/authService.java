@@ -16,6 +16,9 @@ import com.authService.model.User;
 import com.authService.repository.RefreshTokenRepository;
 import com.authService.repository.authRepository;
 import com.authService.security.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -63,7 +66,7 @@ public class authService {
         User newUser = User.builder()
                 .email(signupRequest.getEmail())
                 .password(passwordEncoder.encode(signupRequest.getPassword()))
-                .displayName(signupRequest.getDisplayName())
+//                .displayName(signupRequest.getDisplayName())
                 .roles(roles)
                 .enabled(true)
                 .build();
@@ -82,7 +85,7 @@ public class authService {
                 .enabled(save.isEnabled())
                 .createdAt(save.getCreatedAt())
                 .updatedAt(save.getUpdatedAt())
-                .displayName(save.getDisplayName())
+//                .displayName(save.getDisplayName())
                 .build();
 
 
@@ -160,17 +163,17 @@ public class authService {
     }
 
     public void logout(String refreshTokenStr) {
-
-
-        refreshTokenService.findByToken(refreshTokenStr)
-                .map(token -> {
-                    refreshTokenService.revoke(token);
-                    return  token;
-                })
+        RefreshToken token = refreshTokenService.findByToken(refreshTokenStr)
                 .orElseThrow(() -> new RefreshTokenErrorHandles("invalid refresh token"));
 
+        if (token.getRevokedAt() != null) {
+            throw new RefreshTokenErrorHandles("invalid refresh token");
+        }
 
-//                .ifPresent(refreshTokenService::revoke);
+        refreshTokenService.revoke(token);
+
+        // Clear the security context
+        SecurityContextHolder.clearContext();
     }
 
     public void logoutAll(User user) {
@@ -180,4 +183,6 @@ public class authService {
     public Boolean existByUserId(UUID userId) {
         return authRepository.existsById(userId);
     }
+
+
 }

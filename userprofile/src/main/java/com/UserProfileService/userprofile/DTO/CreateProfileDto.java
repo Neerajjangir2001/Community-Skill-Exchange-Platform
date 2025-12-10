@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public record CreateProfileDto(
-        UUID userId,
+
         String displayName,
         String bio,
         String city,

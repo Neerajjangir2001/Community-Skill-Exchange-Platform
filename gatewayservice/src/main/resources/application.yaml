@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: gatewayservice
+
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            # ✅ Auth Service - NO FILTER (public endpoints)
+            - id: authService
+              uri: lb://AUTHSERVICE
+              predicates:
+                - Path=/auth/**
+
+            - id: skillservice
+              uri: lb://SKILLSERVICE
+              predicates:
+                - Path=/api/skills/search/**
+
+            # ✅ User Profile Service - WITH FILTER (protected)
+            - id: userprofile
+              uri: lb://USERPROFILE
+              predicates:
+                - Path=/api/users/**
+              filters:
+                - AuthenticationFilter
+
+            # ✅ Skills Service - WITH FILTER (protected)
+            - id: skillservice
+              uri: lb://SKILLSERVICE
+              predicates:
+                - Path=/api/skills/**
+              filters:
+                - AuthenticationFilter
+
+
+
+
+
+
+
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone : http://localhost:8761/eureka/
+
+
+      instance:
+        prefer-ip-address: true          # ✅ Use IP instead of hostname
+        hostname: localhost
+
+app:
+  jwt:
+    secret: "bXktc3VwZXItc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tMjAyNA=="
+    access-token-expiration-ms: 900000
+    refresh-token-expiration-ms: 2592000000
+
+
+
+server:
+  port: 8888

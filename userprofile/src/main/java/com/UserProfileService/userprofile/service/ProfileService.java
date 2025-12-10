@@ -11,11 +11,9 @@ import com.UserProfileService.userprofile.mapper.UserProfileMapper;
 import com.UserProfileService.userprofile.model.UserProfile;
 import com.UserProfileService.userprofile.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.NoSuchElementException;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -29,18 +27,18 @@ public class ProfileService {
 
 
 
-    public ProfileDto createProfile(CreateProfileDto profileDto) {
+    public ProfileDto createProfile(CreateProfileDto profileDto, UUID userId) {
 
-        if (!webClient.validateUser(profileDto.userId())){
+        if (!webClient.validateUser(userId)) {
             throw new UserNotFound("Invalid user id");
         }
 
-        if (userProfileRepository.findByUserId(profileDto.userId()).isPresent()){
+        if (userProfileRepository.findByUserId(userId).isPresent()) {
             throw new UserAlreadyExistsException("User already exists");
         }
 
         UserProfile userProfile = UserProfile.builder()
-                .userId(profileDto.userId())
+                .userId(userId)
                 .displayName(profileDto.displayName())
                 .bio(profileDto.bio())
                 .skills(profileDto.skills())
@@ -52,7 +50,7 @@ public class ProfileService {
     return  userProfileMapper.toDto(userProfileRepository.save(userProfile));
 
     }
-    public ProfileDto updateProfile(UpdateProfileDto dto ,  UUID userId) {
+    public ProfileDto updateProfile(UpdateProfileDto dto , UUID userId) {
         if (!webClient.validateUser(userId))
             throw new UserNotFound("User does not exist");
 
@@ -101,4 +99,17 @@ public class ProfileService {
 
 
     }
+
+    public List<ProfileDto> searchProfiles(String keyword, String city, Boolean isProvider) {
+        List<UserProfile> results = userProfileRepository.searchProfiles(keyword, city, isProvider);
+
+        if (results.isEmpty()) {
+            throw new ProfileNotFoundException();
+        }
+        return results.stream()
+                .map(userProfileMapper::toDto).toList();
+
+    }
+
+
 }

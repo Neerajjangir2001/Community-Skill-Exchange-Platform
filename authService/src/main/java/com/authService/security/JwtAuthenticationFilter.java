@@ -47,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Collection<? extends GrantedAuthority> authorities =
                         roles == null ? List.of() :
                                 roles.stream()
-                                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role)) // ensures Spring format
+                                        .map(SimpleGrantedAuthority::new)// ensures Spring format
                                         .collect(Collectors.toList());
 
                 UsernamePasswordAuthenticationToken auth =

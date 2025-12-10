@@ -18,8 +18,8 @@ spring:
 
 app:
   jwt:
-    secret: "vLgKIPb5hWlvTlh2+eP2K45TqN9tYHg2pHQfYp6J7Ps="
-    access-token-expiration-ms: 900000
+    secret: "bXktc3VwZXItc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tMjAyNA=="
+    access-token-expiration-ms: 3600000
     refresh-token-expiration-ms: 2592000000
 
 security:
@@ -30,6 +30,11 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+
+      instance:
+        prefer-ip-address: true          # ✅ Use IP instead of hostname
+        hostname: localhost
 
 server:
   port: 8081
