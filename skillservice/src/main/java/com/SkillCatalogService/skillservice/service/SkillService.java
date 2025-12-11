@@ -10,6 +10,8 @@ import com.SkillCatalogService.skillservice.model.SkillStatus;
 import com.SkillCatalogService.skillservice.openSearch.SkillSearchIndexer;
 import com.SkillCatalogService.skillservice.repository.SkillRepository;
 
+
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 
 import org.slf4j.Logger;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -35,7 +38,6 @@ public class SkillService {
     private final AuthClient webClient;
     private final SkillRepository skillRepository;
     private final KafkaProperties kafkaProperties;
-//    private static final Logger logger = LoggerFactory.getLogger(SkillService.class);
 
     @Value("${kafka.topic.skill-events}")
     private String skillTopic;
@@ -48,11 +50,10 @@ public class SkillService {
             throw new UserNotFound("Invalid user id");
         }
 
-        if (skillRepository.findByUserId(userId).isPresent()){
-            throw new UserAlreadyExistsException("User already exists");
-        }
+
 
         Skill skill = Skill.builder()
+//                .id(UUID.randomUUID())
                 .userId(userId)
                 .title(req.getTitle())
                 .description(req.getDescription())
@@ -62,6 +63,12 @@ public class SkillService {
                 .status(SkillStatus.ACTIVE)
                 .createdAt(Instant.now())
                 .build();
+
+        if (req.getTags() != null && !req.getTags().isEmpty()) {
+          skill.setTags(new ArrayList<>(req.getTags()));
+          }
+
+
 
         Skill savedSkill = repository.save(skill);
 

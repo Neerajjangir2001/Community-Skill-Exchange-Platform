@@ -30,13 +30,14 @@ public class Skill {
     @Column(length = 2000)
     private String description;
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "skill_tags",
             joinColumns = @JoinColumn(name = "skill_id")
     )
-    @Column(name = "tag", nullable = false)
-    @BatchSize(size = 50)
+    @Column(name = "tag")
+    @BatchSize(size = 100)
+    @Builder.Default
     private List<String> tags = new ArrayList<>();
 
     private String level;

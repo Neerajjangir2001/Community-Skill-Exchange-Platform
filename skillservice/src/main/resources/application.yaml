@@ -3,10 +3,15 @@ spring:
     name: skillservice
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/skills_db
+    url: jdbc:postgresql://localhost:5432/skills_db?reWriteBatchedInserts=true&prepareThreshold=0
     username: postgres
     password: Neeraj2001@
     driver-class-name: org.postgresql.Driver
+
+    hikari:
+      maximum-pool-size: 10
+      data-source-properties:
+        reWriteBatchedInserts: true
 
   jackson:
     serialization:
@@ -16,14 +21,19 @@ spring:
 
 
   jpa:
-    hibernate:
-      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
+      ddl-auto: update
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
+          batch_size: 100
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+        # Critical for @ElementCollection batching
+        default_batch_fetch_size: 100
     show-sql: true
-
+    open-in-view: false
 
 
 
@@ -68,4 +78,7 @@ app:
     refresh-token-expiration-ms: 2592000000
 
 
-
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.postgresql.jdbc.PgStatement: TRACE
