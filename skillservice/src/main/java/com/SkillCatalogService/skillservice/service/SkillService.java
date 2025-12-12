@@ -3,33 +3,29 @@ package com.SkillCatalogService.skillservice.service;
 import com.SkillCatalogService.skillservice.DTO.SkillRequest;
 import com.SkillCatalogService.skillservice.DTO.SkillResponse;
 import com.SkillCatalogService.skillservice.config.KafkaProperties;
-import com.SkillCatalogService.skillservice.exceptionHandle.allExceprionHandles.*;
+import com.SkillCatalogService.skillservice.exceptionHandle.allExceprionHandles.SkillDeletionException;
+import com.SkillCatalogService.skillservice.exceptionHandle.allExceprionHandles.SkillNotFoundException;
+import com.SkillCatalogService.skillservice.exceptionHandle.allExceprionHandles.UserNotFound;
 import com.SkillCatalogService.skillservice.kafka.SkillEventsProducer;
 import com.SkillCatalogService.skillservice.model.Skill;
 import com.SkillCatalogService.skillservice.model.SkillStatus;
 import com.SkillCatalogService.skillservice.openSearch.SkillSearchIndexer;
 import com.SkillCatalogService.skillservice.repository.SkillRepository;
-
-
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SkillService {
 
     private final SkillRepository repository;
@@ -38,125 +34,280 @@ public class SkillService {
     private final AuthClient webClient;
     private final SkillRepository skillRepository;
     private final KafkaProperties kafkaProperties;
+    private final SkillSearchService searchService;
 
     @Value("${kafka.topic.skill-events}")
     private String skillTopic;
 
 
-    @Transactional
-    public SkillResponse createSkill(SkillRequest req, UUID userId) {
-
-        if (!webClient.validateUser(userId)){
-            throw new UserNotFound("Invalid user id");
+    private <T> T executeWithFallback(
+            Supplier<T> openSearchOperation,
+            Supplier<T> databaseOperation,
+            String operationName) {
+        try {
+            log.debug("Attempting {} via OpenSearch", operationName);
+            return openSearchOperation.get();
+        } catch (Exception e) {
+            log.warn("OpenSearch failed for {}, falling back to database: {}",
+                    operationName, e.getMessage());
+            return databaseOperation.get();
         }
-
-
-
-        Skill skill = Skill.builder()
-//                .id(UUID.randomUUID())
-                .userId(userId)
-                .title(req.getTitle())
-                .description(req.getDescription())
-                .tags(req.getTags())
-                .level(req.getLevel())
-                .pricePerHour(req.getPricePerHour())
-                .status(SkillStatus.ACTIVE)
-                .createdAt(Instant.now())
-                .build();
-
-        if (req.getTags() != null && !req.getTags().isEmpty()) {
-          skill.setTags(new ArrayList<>(req.getTags()));
-          }
-
-
-
-        Skill savedSkill = repository.save(skill);
-
-        indexer.indexSkills(skill);
-        producer.publishSkillCreated(savedSkill,kafkaProperties.getTopic().getSkillEvents());
-        return toResponse(savedSkill);
-
     }
 
-    public SkillResponse getById(UUID id) {
-        Skill s = repository.findById(id).orElseThrow(() -> new ProfileNotFoundException("Skills not found"));
-        return toResponse(s);
+
+    // ==================== PUBLIC METHODS ====================
+
+
+    public List<SkillResponse> getAllSkills(String search, String level) {
+        return executeWithFallback(
+                // OpenSearch operation
+                () -> searchService.getAllSkills(search, level),
+                // Database fallback
+                () -> getAllSkillsFromDB(search, level),
+                "getAllSkills"
+        );
     }
 
-    public List<SkillResponse> getByUserId(UUID userId) {
-        List<Skill> skills = repository.findAllByUserId(userId);
-
-        if (skills.isEmpty()){
-            throw new SkillNotFoundException(" Skill Not found this ID: " + userId);
+    private List<SkillResponse> getAllSkillsFromDB(String search, String level) {
+        List<Skill> skills;
+        if (search != null && !search.isEmpty()) {
+            skills = repository.findByTitleContainingIgnoreCaseAndStatus(
+                    search, SkillStatus.ACTIVE);
+        } else if (level != null && !level.isEmpty()) {
+            skills = repository.findByLevelAndStatus(level, SkillStatus.ACTIVE);
+        } else {
+            skills = repository.findByStatus(SkillStatus.ACTIVE);
         }
+        return skills.stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    public SkillResponse getSkillById(UUID id) {
+        log.info("Fetching skill by id: {}", id);
+        Skill skill = repository.findById(id)
+                .orElseThrow(() -> new SkillNotFoundException("Skill not found: " + id));
+        return toResponse(skill);
+    }
+
+
+    public List<SkillResponse> getSkillsByUserId(UUID userId) {
+        return executeWithFallback(
+                // OpenSearch operation
+                () -> searchService.getSkillsByUserId(userId),
+                // Database fallback
+                () -> {
+                    List<Skill> skills = repository.findAllByUserId(userId);
+                    return skills.stream()
+                            .map(this::toResponse)
+                            .collect(Collectors.toList());
+                },
+                "getSkillsByUserId"
+        );
+    }
+
+
+    public List<SkillResponse> searchSkills(String query) {
+        log.info("Searching skills with query: {}", query);
+
+        return executeWithFallback(
+                // OpenSearch operation
+                () -> searchService.searchSkillsByQuery(query),
+                // Database fallback
+                () -> searchSkillsFromDB(query),
+                "searchSkills"
+        );
+    }
+
+    private List<SkillResponse> searchSkillsFromDB(String query) {
+        log.info("Searching in database with query: {}", query);
+        List<Skill> skills = repository
+                .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(query, query);
 
         return skills.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
+    // ==================== TEACHER METHODS ====================
+
+
     @Transactional
-    public SkillResponse update(UUID id, SkillRequest req, UUID userId) {
-        Skill skill = repository.findById(id)
-                .orElseThrow(() -> new SkillNotFoundException("Skill not found with id: " + id));
+    public SkillResponse createSkill(SkillRequest req, UUID teacherId) {
+        log.info("Teacher {} creating skill: {}", teacherId, req.getTitle());
 
-
-        if (!skill.getUserId().equals(userId)) {
-            throw new AccessDeniedException("Only the owner can update this skill");
+        // Validate teacher exists
+        if (!webClient.validateUser(teacherId)) {
+            throw new UserNotFound("Invalid user id: " + teacherId);
         }
-        skill.setTitle(req.getTitle());
-        skill.setDescription(req.getDescription());
-        skill.setTags(req.getTags());
-        skill.setLevel(req.getLevel());
-        skill.setPricePerHour(req.getPricePerHour());
-        skill.setUpdatedAt(Instant.now());
 
-        Skill saved = repository.save(skill);
-        indexer.indexSkills(saved);
-        producer.publishSkillUpdate(saved,kafkaProperties.getTopic().getSkillEvents());
-        return toResponse(saved);
+        // Build skill entity
+        Skill skill = Skill.builder()
+                .userId(teacherId)
+                .title(req.getTitle())
+                .description(req.getDescription())
+                .level(req.getLevel())
+                .pricePerHour(req.getPricePerHour())
+                .status(SkillStatus.ACTIVE)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
+
+        // Set tags properly for @ElementCollection
+        if (req.getTags() != null && !req.getTags().isEmpty()) {
+            skill.setTags(new ArrayList<>(req.getTags()));
+        }
+
+        // Save to database
+        Skill savedSkill = repository.save(skill);
+        log.info("Skill created with id: {}", savedSkill.getId());
+
+        // Index in OpenSearch
+        try {
+            indexer.indexSkills(savedSkill);
+        } catch (Exception e) {
+            log.error("Failed to index skill: {}", e.getMessage());
+        }
+
+        // Publish Kafka event
+        try {
+            producer.publishSkillCreated(savedSkill, kafkaProperties.getTopic().getSkillEvents());
+        } catch (Exception e) {
+            log.error("Failed to publish skill created event: {}", e.getMessage());
+        }
+
+        return toResponse(savedSkill);
     }
 
 
     @Transactional
-    public void delete(UUID skillId, UUID userId) {
+    public SkillResponse updateSkill(UUID skillId, SkillRequest req, UUID teacherId) {
+        log.info("Teacher {} updating skill: {}", teacherId, skillId);
 
-        Skill skill = repository.findByIdAndUserId(skillId, userId)
+        // Find skill
+        Skill skill = repository.findById(skillId)
+                .orElseThrow(() -> new SkillNotFoundException("Skill not found: " + skillId));
+
+        // Check ownership - only owner can update
+        if (!skill.getUserId().equals(teacherId)) {
+            throw new AccessDeniedException("You can only update your own skills");
+        }
+
+        // Update fields
+        skill.setTitle(req.getTitle());
+        skill.setDescription(req.getDescription());
+        skill.setLevel(req.getLevel());
+        skill.setPricePerHour(req.getPricePerHour());
+        skill.setUpdatedAt(Instant.now());
+
+        // Update tags
+        if (req.getTags() != null && !req.getTags().isEmpty()) {
+            skill.setTags(new ArrayList<>(req.getTags()));
+        }
+
+        // Save
+        Skill savedSkill = repository.save(skill);
+        log.info("Skill updated: {}", savedSkill.getId());
+
+        // Re-index in OpenSearch
+        try {
+            indexer.indexSkills(savedSkill);
+        } catch (Exception e) {
+            log.error("Failed to update skill index: {}", e.getMessage());
+        }
+
+        // Publish update event
+        try {
+            producer.publishSkillUpdate(savedSkill, kafkaProperties.getTopic().getSkillEvents());
+        } catch (Exception e) {
+            log.error("Failed to publish skill update event: {}", e.getMessage());
+        }
+
+        return toResponse(savedSkill);
+    }
+
+
+    @Transactional
+    public void deleteSkill(UUID skillId, UUID teacherId) {
+        log.info("Teacher {} deleting skill: {}", teacherId, skillId);
+
+        // Find skill and verify ownership
+        Skill skill = repository.findByIdAndUserId(skillId, teacherId)
                 .orElseThrow(() -> new SkillNotFoundException(
                         "Skill not found or you don't have permission to delete it"
                 ));
 
         try {
-            // Delete from OpenSearch index first (can rollback DB if fails)
+            // Delete from OpenSearch index
             indexer.deleteSkill(skillId);
+
+            // Delete from database
             repository.delete(skill);
-            // Publish event to Kafka (after successful deletion)
-            producer.publishSkillDeleted(
-                    skillId,
-                    userId,
-                    kafkaProperties.getTopic().getSkillEvents()
-            );
+            log.info("Skill deleted: {}", skillId);
+
+            // Publish deletion event
+            producer.publishSkillDeleted(skillId, teacherId, kafkaProperties.getTopic().getSkillEvents());
 
         } catch (Exception e) {
+            log.error("Failed to delete skill: {}", e.getMessage());
             throw new SkillDeletionException("Failed to delete skill", e);
         }
     }
 
+    // ==================== ADMIN METHODS ====================
 
-    private SkillResponse toResponse(Skill s) {
+
+    public List<SkillResponse> getAllSkillsAdmin() {
+        log.info("Admin fetching all skills (including inactive)");
+        return repository.findAll().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+
+    public Map<String, Object> getSkillStats() {
+        log.info("Admin fetching skill statistics");
+        Map<String, Object> stats = new HashMap<>();
+
+        List<Skill> allSkills = repository.findAll();
+
+        // Total counts
+        stats.put("total", allSkills.size());
+        stats.put("active", allSkills.stream()
+                .filter(s -> s.getStatus() == SkillStatus.ACTIVE)
+                .count());
+        stats.put("inactive", allSkills.stream()
+                .filter(s -> s.getStatus() == SkillStatus.INACTIVE)
+                .count());
+
+        // Group by level
+        Map<String, Long> byLevel = allSkills.stream()
+                .collect(Collectors.groupingBy(Skill::getLevel, Collectors.counting()));
+        stats.put("byLevel", byLevel);
+
+        // Top teachers by skill count
+        Map<UUID, Long> topTeachers = allSkills.stream()
+                .collect(Collectors.groupingBy(Skill::getUserId, Collectors.counting()));
+        stats.put("topTeachers", topTeachers);
+
+        return stats;
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    private SkillResponse toResponse(Skill skill) {
         return SkillResponse.builder()
-                .id(s.getId())
-                .userId(s.getUserId())
-                .title(s.getTitle())
-                .description(s.getDescription())
-                .tags(s.getTags())
-                .level(s.getLevel())
-                .pricePerHour(s.getPricePerHour())
-                .status(s.getStatus()!=null? s.getStatus().name():null)
-                .createdAt(s.getCreatedAt())
-                .updatedAt(s.getUpdatedAt())
+                .id(skill.getId())
+                .userId(skill.getUserId())
+                .title(skill.getTitle())
+                .description(skill.getDescription())
+                .tags(skill.getTags())
+                .level(skill.getLevel())
+                .pricePerHour(skill.getPricePerHour())
+                .status(String.valueOf(skill.getStatus()))
+                .createdAt(skill.getCreatedAt())
+                .updatedAt(skill.getUpdatedAt())
                 .build();
     }
+
 
 
 

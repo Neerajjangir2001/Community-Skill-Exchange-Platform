@@ -29,8 +29,7 @@
 	<properties>
 		<java.version>21</java.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+
 	</properties>
 	<dependencies>
 
@@ -177,6 +176,10 @@
             <artifactId>authService</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
         </dependency>
 
 

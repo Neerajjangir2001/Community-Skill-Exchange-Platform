@@ -17,7 +17,9 @@ spring:
             - id: skillservice
               uri: lb://SKILLSERVICE
               predicates:
-                - Path=/api/skills/search/**
+                - Path=/api/search/**
+
+
 
             # ✅ User Profile Service - WITH FILTER (protected)
             - id: userprofile

@@ -106,4 +106,6 @@ public class GlobalExceptionHandle {
                 .body(Map.of("error", ex.getMessage()));
     }
 
+
+
 }

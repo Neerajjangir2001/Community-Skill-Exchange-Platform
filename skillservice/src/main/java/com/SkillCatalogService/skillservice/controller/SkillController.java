@@ -5,8 +5,9 @@ import com.SkillCatalogService.skillservice.DTO.SkillResponse;
 import com.SkillCatalogService.skillservice.service.SkillService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,71 +19,76 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/skills")
 @RequiredArgsConstructor
+@Slf4j
 public class SkillController {
-    private final SkillService service;
-    private static final Logger logger = LoggerFactory.getLogger(SkillController.class);
+    private final SkillService skillService;
+
+
+
+
+    // ==================== TEACHER ENDPOINTS ====================
 
     @PostMapping
-    public ResponseEntity<?> create(@Valid @RequestBody SkillRequest req,
-                                                @RequestHeader(value = "X-User-Id", required = false) String userIdHeader) {
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<SkillResponse> createSkill(
+            Authentication authentication,
+            @Valid @RequestBody SkillRequest request) {
 
-        UUID userId;
-        if (userIdHeader != null) {
-            userId = UUID.fromString(userIdHeader);
-        } else {
-            throw new RuntimeException("User ID not found");
-        }
-        SkillResponse skill = service.createSkill(req, userId);
-        return ResponseEntity.ok( skill);
-    }
+        UUID teacherId = (UUID) authentication.getPrincipal();
+        log.info("POST /api/skills - Teacher: {}, Title: {}", teacherId, request.getTitle());
 
-    @GetMapping("/{id}")
-    public ResponseEntity<SkillResponse> get(@PathVariable UUID id) {
-        return ResponseEntity.ok(service.getById(id));
+        SkillResponse response = skillService.createSkill(request, teacherId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/my-skills")
-    public ResponseEntity<List<SkillResponse>> getMySkills(
-            @RequestHeader("X-User-Id") String userIdHeader) {
-        UUID userId = UUID.fromString(userIdHeader);
-        return ResponseEntity.ok(service.getByUserId(userId));
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<List<SkillResponse>> getMySkills(Authentication authentication) {
+        UUID teacherId = (UUID) authentication.getPrincipal();
+        log.info("GET /api/skills/my-skills - Teacher: {}", teacherId);
+        return ResponseEntity.ok(skillService.getSkillsByUserId(teacherId));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SkillResponse> update(
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<SkillResponse> updateSkill(
             @PathVariable UUID id,
-            @Valid @RequestBody SkillRequest req,
-            @RequestHeader("X-User-Id") String userIdHeader) {
-        UUID userId = UUID.fromString(userIdHeader);
-        return ResponseEntity.ok(service.update(id, req, userId));
+            @Valid @RequestBody SkillRequest request,
+            Authentication authentication) {
+
+        UUID teacherId = (UUID) authentication.getPrincipal();
+        log.info("PUT /api/skills/{} - Teacher: {}", id, teacherId);
+
+        SkillResponse response = skillService.updateSkill(id, request, teacherId);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteSkill(@PathVariable UUID id,
-                                                           Authentication authentication) {
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<Void> deleteSkill(
+            @PathVariable UUID id,
+            Authentication authentication) {
 
-        // Get userId from JWT token (secure - not from header)
-        UUID userId = UUID.fromString(authentication.getName());
+        UUID teacherId = (UUID) authentication.getPrincipal();
+        log.info("DELETE /api/skills/{} - Teacher: {}", id, teacherId);
 
-        service.delete(id, userId);
-
-        logger.info("Skill {} deleted by user {}", id, userId);
-
-        return ResponseEntity.ok(Map.of(
-                "message", "Skill deleted successfully",
-                "skillId", id.toString()
-        ));
+        skillService.deleteSkill(id, teacherId);
+        return ResponseEntity.noContent().build();
     }
 
-    private UUID extractUserId(Authentication auth) {
-        if (auth == null || auth.getName() == null) {
-            throw new RuntimeException("Unauthenticated");
-        }
-        return UUID.fromString(auth.getName());
+    // ==================== ADMIN ENDPOINTS ====================
+
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<SkillResponse>> getAllSkillsAdmin() {
+        log.info("GET /api/skills/all - Admin request");
+        return ResponseEntity.ok(skillService.getAllSkillsAdmin());
     }
 
-//    private boolean hasRole(Authentication auth, String role) {
-//        if (auth == null) return false;
-//        return auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals( role) || a.getAuthority().equals(role));
-//    }
+    @GetMapping("/stats")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> getSkillStats() {
+        log.info("GET /api/skills/stats - Admin request");
+        return ResponseEntity.ok(skillService.getSkillStats());
+    }
 }

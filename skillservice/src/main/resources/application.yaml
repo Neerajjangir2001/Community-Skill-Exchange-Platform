@@ -77,7 +77,6 @@ app:
     access-token-expiration-ms: 3600000
     refresh-token-expiration-ms: 2592000000
 
-
 logging:
   level:
     org.hibernate.SQL: DEBUG
