@@ -38,6 +38,14 @@ spring:
                 - AuthenticationFilter
 
 
+            - id: bookingservice
+              uri: lb://BOOKINGSERVICE
+              predicates:
+                - Path=/api/bookings/**
+              filters:
+                - AuthenticationFilter
+
+
 
 
 

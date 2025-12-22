@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: bookingservice
+
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/booking_db?reWriteBatchedInserts=true
+    username: postgres
+    password: Neeraj2001@
+    hikari:
+      maximum-pool-size: 10
+
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+        format_sql: true
+    show-sql: true
+    open-in-view: false
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+server:
+  port: 8087
+
+kafka:
+  topic:
+    booking-events: booking-events
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+
+      instance:
+        prefer-ip-address: true          # ✅ Use IP instead of hostname
+        hostname: localhost
+
+
+app:
+  jwt:
+    secret: "bXktc3VwZXItc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tMjAyNA=="
+    access-token-expiration-ms: 3600000
+    refresh-token-expiration-ms: 2592000000
+
+
+logging:
+  level:
+    root: INFO
+    com.bookingservice: DEBUG
+    io.netty.resolver.dns: ERROR

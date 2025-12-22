@@ -9,18 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="eurekaServer" />
       </profile>
-      <profile name="Annotation profile for userprofile" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath>
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
-        </processorPath>
-        <module name="authService" />
-        <module name="userprofile" />
-        <module name="gatewayservice" />
-      </profile>
-      <profile name="Annotation profile for skillservice" enabled="true">
+      <profile name="Annotation profile for bookingservice" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -28,12 +17,17 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
         <module name="skillservice" />
+        <module name="userprofile" />
+        <module name="bookingservice" />
+        <module name="authService" />
+        <module name="gatewayservice" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="authService" options="-parameters" />
+      <module name="bookingservice" options="-parameters" />
       <module name="eurekaServer" options="-parameters" />
       <module name="gatewayservice" options="-parameters" />
       <module name="skillservice" options="-parameters" />

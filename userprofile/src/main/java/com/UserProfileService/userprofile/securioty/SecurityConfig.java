@@ -22,9 +22,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> auth
+                                // ✅ Allow microservice-to-microservice calls (no JWT needed)
+                                .requestMatchers("/api/users/*/exists").permitAll()
+                                .requestMatchers("/api/users/search").permitAll()
+
+                                // ✅ Allow health checks
+                                .requestMatchers("/actuator/**").permitAll()
+                        .anyRequest().authenticated())
                 .httpBasic(AbstractHttpConfigurer::disable)  // ✅ ADD THIS LINE
                 .formLogin(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

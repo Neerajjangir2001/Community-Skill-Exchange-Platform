@@ -7,7 +7,6 @@ import com.UserProfileService.userprofile.service.CloudinaryService;
 import com.UserProfileService.userprofile.service.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -80,4 +79,13 @@ public class profileController {
     ) {
         return ResponseEntity.ok(profileService.searchProfiles(keyword, city, isProvider));
     }
+
+
+
+    @GetMapping("/{id}/exists")
+    public ResponseEntity<Boolean> userExists(@PathVariable UUID id) {
+        boolean exists = profileService.validateUser(id);
+        return ResponseEntity.ok(exists);
+    }
+
 }

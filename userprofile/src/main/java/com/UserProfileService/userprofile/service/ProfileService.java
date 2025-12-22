@@ -111,5 +111,14 @@ public class ProfileService {
 
     }
 
+    public Boolean validateUser(UUID userId) {
+
+    if (!webClient.validateUser(userId))
+        throw new UserNotFound("User does not exist");
+
+    return true;
+
+    }
+
 
 }
