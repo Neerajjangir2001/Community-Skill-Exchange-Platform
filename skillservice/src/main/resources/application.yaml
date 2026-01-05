@@ -59,7 +59,7 @@ server:
   port: 8086
 
 kafka:
-  bootstrap-servers: localhost:9093
+  bootstrap-servers: localhost:9092
   topic:
     skill-events: skill-events
     skill-updated: skill-updated

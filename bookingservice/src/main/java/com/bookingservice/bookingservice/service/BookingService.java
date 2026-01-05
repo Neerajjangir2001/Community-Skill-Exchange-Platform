@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -345,32 +346,108 @@ public class BookingService {
     }
 
     private void publishBookingCreated(Booking booking) {
-        BookingCreatedEvent event = BookingCreatedEvent.builder()
-                .bookingId(booking.getId())
-                .userId(booking.getUserId())
-                .providerId(booking.getProviderId())
-                .skillId(booking.getSkillId())
-                .startTime(booking.getStartTime())
-                .endTime(booking.getEndTime())
-                .totalPrice(booking.getTotalPrice())
-                .status(booking.getStatus().name())
-                .createdAt(booking.getCreatedAt())
-                .build();
-        kafkaTemplate.send(bookingEventsTopic, "booking.created", event);
-        log.info(" Published BookingCreatedEvent for booking {}", booking.getId());
+        try {
+            // Fetch skill details
+            ExternalServiceClient.SkillDetails skill = externalClient.getSkill(booking.getSkillId());
+
+            // Fetch user (student) details
+            Map<String, Object> user = externalClient.getUserDetails(booking.getUserId());
+
+            // Fetch provider (teacher) details
+            Map<String, Object> provider = externalClient.getUserDetails(booking.getProviderId());
+
+            // Build complete event
+            BookingCreatedEvent event = BookingCreatedEvent.builder()
+                    .eventType("BOOKING_CREATED")
+                    .bookingId(booking.getId())
+
+                    // User (student) details
+                    .userId(booking.getUserId())
+                    .userName((String) user.get("name"))
+                    .userEmail((String) user.get("email"))
+
+                    // Provider (teacher) details
+                    .providerId(booking.getProviderId())
+                    .providerName((String) provider.get("name"))
+                    .providerEmail((String) provider.get("email"))
+
+                    // Skill details
+                    .skillId(booking.getSkillId())
+                    .skillName(skill != null ? skill.getName() : "Unknown Skill")
+
+                    // Session time
+                    .startTime(booking.getStartTime())
+                    .endTime(booking.getEndTime())
+                    .sessionTime(formatSessionTime(booking.getStartTime(), booking.getEndTime()))
+
+
+                    // Price and status
+                    .totalPrice(booking.getTotalPrice())
+                    .status(booking.getStatus().name())
+                    .message("")
+                    .createdAt(booking.getCreatedAt())
+                    .build();
+
+            kafkaTemplate.send(bookingEventsTopic, "booking.created", event);
+            log.info(" Published BookingCreatedEvent for booking {} with complete details", booking.getId());
+
+        } catch (Exception e) {
+            log.error(" Failed to publish BookingCreatedEvent for booking {}", booking.getId(), e);
+        }
     }
 
+
+
     private void publishStatusChanged(Booking booking, Status oldStatus, Status newStatus, String reason) {
-        BookingStatusChangedEvent event = BookingStatusChangedEvent.builder()
-                .bookingId(booking.getId())
-                .oldStatus(oldStatus.name())
-                .newStatus(newStatus.name())
-                .reason(reason)
-                .changedAt(OffsetDateTime.now())
-                .build();
-        kafkaTemplate.send(bookingEventsTopic, "booking.status.changed", event);
-        log.info(" Published BookingStatusChangedEvent for booking {}", booking.getId());
+        try {
+            // Fetch skill, user, and provider details
+            ExternalServiceClient.SkillDetails skill = externalClient.getSkill(booking.getSkillId());
+            Map<String, Object> user = externalClient.getUserDetails(booking.getUserId());
+            Map<String, Object> provider = externalClient.getUserDetails(booking.getProviderId());
+
+            // Build complete event
+            BookingStatusChangedEvent event = BookingStatusChangedEvent.builder()
+                    .eventType("BOOKING_STATUS_CHANGED")
+                    .bookingId(booking.getId())
+
+                    // User details
+                    .userId(booking.getUserId())
+                    .userName((String) user.getOrDefault("name", "User"))
+                    .userEmail((String) user.getOrDefault("email", "user@example.com"))
+
+                    // Provider details
+                    .providerId(booking.getProviderId())
+                    .providerName((String) provider.getOrDefault("name", "Provider"))
+                    .providerEmail((String) provider.getOrDefault("email", "provider@example.com"))
+
+                    // Skill details
+                    .skillId(booking.getSkillId())
+                    .skillName(skill != null ? skill.getName() : "Unknown Skill")
+
+                    // Session time
+                    .startTime(booking.getStartTime())
+                    .endTime(booking.getEndTime())
+                    .sessionTime(formatSessionTime(booking.getStartTime(), booking.getEndTime()))
+
+                    // Status change
+                    .oldStatus(oldStatus.name())
+                    .newStatus(newStatus.name())
+                    .reason(reason)
+                    .changedAt(OffsetDateTime.now())
+                    .build();
+
+            kafkaTemplate.send(bookingEventsTopic, "booking.status.changed", event);
+            log.info(" Published BookingStatusChangedEvent for booking {} with complete details", booking.getId());
+
+        } catch (Exception e) {
+            log.error(" Failed to publish BookingStatusChangedEvent for booking {}", booking.getId(), e);
+        }
     }
+    private String formatSessionTime(OffsetDateTime startTime, OffsetDateTime endTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm a");
+        return startTime.format(formatter) + " - " + endTime.format(formatter);
+    }
+
 }
 
 

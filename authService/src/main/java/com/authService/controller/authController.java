@@ -95,4 +95,13 @@ public class authController {
         }
     }
 
+
+
+    @GetMapping("/users/{userId}/email")
+    public ResponseEntity<String> getUserEmail(@PathVariable UUID userId) {
+
+        String email = authService.getEmailByUserId(userId);
+        return ResponseEntity.ok(email);
+    }
+
 }

@@ -9,7 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="eurekaServer" />
       </profile>
-      <profile name="Annotation profile for bookingservice" enabled="true">
+      <profile name="Annotation profile for notification-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -20,6 +20,7 @@
         <module name="userprofile" />
         <module name="bookingservice" />
         <module name="authService" />
+        <module name="notification-service" />
         <module name="gatewayservice" />
       </profile>
     </annotationProcessing>
@@ -30,6 +31,7 @@
       <module name="bookingservice" options="-parameters" />
       <module name="eurekaServer" options="-parameters" />
       <module name="gatewayservice" options="-parameters" />
+      <module name="notification-service" options="-parameters" />
       <module name="skillservice" options="-parameters" />
       <module name="userprofile" options="-parameters" />
     </option>

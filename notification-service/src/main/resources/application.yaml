@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: notification-service
+
+
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: notification_db
+
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: notification-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: true
+      properties:
+        spring.json.trusted.packages: "*"
+
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: skillexchange.noreply@gmail.com
+    password: ycdxiijueszpxtqj
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+
+# Firebase Configuration (for Push Notifications)
+#firebase:
+#  credentials-path: ${FIREBASE_CREDENTIALS_PATH:src/main/resources/firebase-credentials.json}
+
+
+# Twilio Configuration (for SMS - Optional)
+#twilio:
+#  account-sid: ${TWILIO_ACCOUNT_SID:your-account-sid}
+#  auth-token: ${TWILIO_AUTH_TOKEN:your-auth-token}
+#  phone-number: ${TWILIO_PHONE_NUMBER:+1234567890}
+
+kafka:
+  topics:
+    booking-created: booking-events
+    booking-status-changed: booking-events
+    review-created: review.created
+    message-received: message.received
+    user-registered: user.registered
+    skill-match-found: skill.match.found
+
+server:
+  port: 8070
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+logging:
+  level:
+    com.skillexchange.notification: DEBUG
+    org.springframework.kafka: INFO
+    org.springframework.data.mongodb: DEBUG

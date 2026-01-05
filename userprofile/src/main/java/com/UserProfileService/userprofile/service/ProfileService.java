@@ -120,5 +120,11 @@ public class ProfileService {
 
     }
 
+    public ProfileDto getProfileByUserId(UUID userId) {
+        UserProfile userProfile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(ProfileNotFoundException::new);
+        return userProfileMapper.toDto(userProfile);
+    }
+
 
 }

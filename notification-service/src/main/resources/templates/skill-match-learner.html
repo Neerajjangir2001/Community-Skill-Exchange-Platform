@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Skill Match Found</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+<div style="background-color: #00BCD4; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
+    <h2 style="color: white; margin: 0;">🎯 Perfect Match Found!</h2>
+</div>
+
+<div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+    <p>Dear <strong th:text="${learnerName}"></strong>,</p>
+
+    <p>Great news! We found someone who can teach you <strong th:text="${skillName}"></strong>!</p>
+
+    <div style="background-color: white; padding: 20px; margin: 20px 0; border-left: 4px solid #00BCD4; border-radius: 5px;">
+        <p><strong>Teacher:</strong> <span th:text="${teacherName}"></span></p>
+        <p><strong>Skill:</strong> <span th:text="${skillName}"></span></p>
+    </div>
+
+    <p>Don't miss this opportunity! Check their profile and book a session.</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="http://localhost:3000/search" style="background-color: #00BCD4; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">View Profile & Book</a>
+    </div>
+
+    <p style="margin-top: 30px;">Best regards,<br/><strong>Skill Exchange Team</strong></p>
+</div>
+</body>
+</html>

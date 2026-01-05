@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @RequiredArgsConstructor
@@ -25,19 +26,27 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                                // ✅ Allow microservice-to-microservice calls (no JWT needed)
-                                .requestMatchers("/api/users/*/exists").permitAll()
-                                .requestMatchers("/api/users/search").permitAll()
+                        // ✅ PUBLIC ENDPOINTS - GET only, no authentication
+                        .requestMatchers(HttpMethod.GET, "/api/users/*/exists").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/*").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/internal/**").permitAll()
 
-                                // ✅ Allow health checks
-                                .requestMatchers("/actuator/**").permitAll()
-                        .anyRequest().authenticated())
-                .httpBasic(AbstractHttpConfigurer::disable)  // ✅ ADD THIS LINE
+                        // ❌ PROTECTED ENDPOINTS - Require authentication
+                        .requestMatchers("/api/users/userComeByUserId").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/users/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/users/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").authenticated()
+
+                        // All other requests require authentication
+                        .anyRequest().authenticated()
+                )
+                .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-
 
         return http.build();
     }
 }
+

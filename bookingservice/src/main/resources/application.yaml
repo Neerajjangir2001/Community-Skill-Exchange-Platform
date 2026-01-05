@@ -2,6 +2,11 @@ spring:
   application:
     name: bookingservice
 
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false  # Use ISO-8601 format
+    time-zone: UTC
+
 
   datasource:
     url: jdbc:postgresql://localhost:5432/booking_db?reWriteBatchedInserts=true

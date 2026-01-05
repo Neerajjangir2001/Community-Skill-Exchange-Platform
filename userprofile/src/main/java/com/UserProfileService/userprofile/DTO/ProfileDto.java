@@ -8,6 +8,7 @@ public record ProfileDto(
         UUID id,
         UUID userId,
         String displayName,
+        String email,
         String bio,
         String city,
         String avatarUrl,

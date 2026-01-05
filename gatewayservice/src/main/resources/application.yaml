@@ -21,8 +21,33 @@ spring:
 
 
 
-            # ✅ User Profile Service - WITH FILTER (protected)
-            - id: userprofile
+
+            # ✅ User Profile Service - PUBLIC endpoints (no auth required)
+            - id: userprofile-public-exists
+              uri: lb://USERPROFILE
+              predicates:
+                - Path=/api/users/*/exists
+                - Method=GET
+
+            - id: userprofile-public-search
+              uri: lb://USERPROFILE
+              predicates:
+                - Path=/api/users/search
+                - Method=GET
+
+            - id: userprofile-public-get
+              uri: lb://USERPROFILE
+              predicates:
+                - Path=/api/users/*
+                - Method=GET
+              filters:
+                - name: RewritePath
+                  args:
+                    regexp: /api/users/(?<segment>.*)
+                    replacement: /api/users/${segment}
+
+            # ✅ User Profile Service - PROTECTED endpoints (auth required)
+            - id: userprofile-protected
               uri: lb://USERPROFILE
               predicates:
                 - Path=/api/users/**
@@ -44,6 +69,13 @@ spring:
                 - Path=/api/bookings/**
               filters:
                 - AuthenticationFilter
+
+
+            - id: notification-service
+              uri: lb://NOTIFICATION-SERVICE
+              predicates:
+                - Path=/api/notifications/**
+
 
 
 

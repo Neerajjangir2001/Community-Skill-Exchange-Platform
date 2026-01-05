@@ -185,4 +185,12 @@ public class authService {
     }
 
 
+    public String getEmailByUserId(UUID userId) {
+        return authRepository.findById(userId)
+                .map(User::getEmail)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found with id: " + userId)
+                );
+    }
+
 }

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>New Review</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+<div style="background-color: #FF9800; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
+    <h2 style="color: white; margin: 0;">⭐ You Received a New Review!</h2>
+</div>
+
+<div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+    <p>Dear <strong th:text="${teacherName}"></strong>,</p>
+
+    <p><strong th:text="${reviewerName}"></strong> left you a review:</p>
+
+    <div style="background-color: white; padding: 20px; margin: 20px 0; border-left: 4px solid #FF9800; border-radius: 5px;">
+        <p><strong>Rating:</strong> <span th:text="${rating}"></span> ⭐</p>
+        <p><strong>Comment:</strong></p>
+        <p style="font-style: italic;" th:text="${comment}"></p>
+    </div>
+
+    <p>Keep up the great work!</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="http://localhost:3000/profile" style="background-color: #FF9800; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">View Your Profile</a>
+    </div>
+
+    <p style="margin-top: 30px;">Best regards,<br/><strong>Skill Exchange Team</strong></p>
+</div>
+</body>
+</html>

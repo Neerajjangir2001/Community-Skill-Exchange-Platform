@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Booking Request</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        .booking-card {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .booking-card h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .detail-row {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: bold;
+            color: #666;
+            display: inline-block;
+            width: 140px;
+        }
+        .value {
+            color: #333;
+        }
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            background: #ffc107;
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .message-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>🔔 New Booking Request</h1>
+</div>
+
+<div class="content">
+    <p>Hi <strong th:text="${teacherName}">Teacher</strong>,</p>
+
+    <p>You have received a new booking request from a student!</p>
+
+    <div class="booking-card">
+        <h3>📚 Booking Details</h3>
+
+        <div class="detail-row">
+            <span class="label">Student:</span>
+            <span class="value" th:text="${studentName}">Student Name</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="label">Skill:</span>
+            <span class="value" th:text="${skillName}">Skill Name</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="label">Session Time:</span>
+            <span class="value" th:text="${sessionTime}">Time</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="label">Price:</span>
+            <span class="price">₹<span th:text="${totalPrice}">0.00</span></span>
+        </div>
+
+        <div class="detail-row">
+            <span class="label">Booking ID:</span>
+            <span class="value" th:text="${bookingId}">ID</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="label">Status:</span>
+            <span class="status-badge" th:text="${status}">PENDING</span>
+        </div>
+    </div>
+
+    <div class="message-box" th:if="${message != null and message != ''}">
+        <strong>💬 Message from Student:</strong>
+        <p th:text="${message}">Student message</p>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <p><strong>Please log in to your account to accept or reject this booking.</strong></p>
+    </div>
+</div>
+
+<div class="footer">
+    <p>This is an automated email from Skill Exchange Platform.</p>
+    <p>© 2025 Skill Exchange. All rights reserved.</p>
+</div>
+</body>
+</html>

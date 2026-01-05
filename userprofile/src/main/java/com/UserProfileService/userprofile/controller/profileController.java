@@ -88,4 +88,10 @@ public class profileController {
         return ResponseEntity.ok(exists);
     }
 
+    @GetMapping("/{userId}")
+    public ResponseEntity<ProfileDto> getProfileById(@PathVariable UUID userId) {
+        ProfileDto profile = profileService.getProfileByUserId(userId);
+        return ResponseEntity.ok(profile);
+    }
+
 }

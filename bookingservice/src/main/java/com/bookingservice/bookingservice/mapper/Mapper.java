@@ -3,7 +3,8 @@ package com.bookingservice.bookingservice.mapper;
 import com.bookingservice.bookingservice.DTO.BookingResponse;
 import com.bookingservice.bookingservice.model.Booking;
 
-public class Mapper {
+public class
+Mapper {
     public static BookingResponse toResponse(Booking booking) {
         if (booking == null) {
             return null;
