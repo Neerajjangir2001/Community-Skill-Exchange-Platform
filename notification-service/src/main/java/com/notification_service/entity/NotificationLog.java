@@ -34,4 +34,5 @@ public class NotificationLog {
     private String referenceId; // UUID as String
     private String referenceType; // BOOKING, REVIEW, MESSAGE, USER, MATCH
 
+
 }

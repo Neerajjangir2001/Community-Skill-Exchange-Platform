@@ -8,6 +8,7 @@ spring:
       host: localhost
       port: 27017
       database: notification_db
+      uuid-representation: standard
 
 
   kafka:
@@ -26,7 +27,8 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: skillexchange.noreply@gmail.com
-    password: ycdxiijueszpxtqj
+    password: ${PASSWORD_EMAIL}
+
     properties:
       mail:
         smtp:
@@ -38,10 +40,15 @@ spring:
           writetimeout: 5000
 
 
-# Firebase Configuration (for Push Notifications)
-#firebase:
-#  credentials-path: ${FIREBASE_CREDENTIALS_PATH:src/main/resources/firebase-credentials.json}
+# OneSignal Configuration (for Push Notifications)
+onesignal:
+  app-id: ${ONESIGNAL_APP_ID}
+  rest-api-key: ${ONESIGNAL_REST_API_KEY}
+  enabled: true
 
+
+websocket:
+  allowed-origins: "*"
 
 # Twilio Configuration (for SMS - Optional)
 #twilio:
