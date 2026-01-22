@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: chat-service
+
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: chat_db
+
+
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: chat-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
+
+
+kafka:
+  topic:
+    message-received: message-notifications
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+      instance:
+        prefer-ip-address: true          #  Use IP instead of hostname
+        hostname: localhost
+
+
+app:
+  jwt:
+    secret: "bXktc3VwZXItc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tMjAyNA=="
+    access-token-expiration-ms: 3600000
+    refresh-token-expiration-ms: 2592000000
+
+
+
+# WebSocket Configuration
+websocket:
+  allowed-origins: "*"
+  endpoint: /ws
+
+server:
+  port: 8089

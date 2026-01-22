@@ -50,18 +50,13 @@ onesignal:
 websocket:
   allowed-origins: "*"
 
-# Twilio Configuration (for SMS - Optional)
-#twilio:
-#  account-sid: ${TWILIO_ACCOUNT_SID:your-account-sid}
-#  auth-token: ${TWILIO_AUTH_TOKEN:your-auth-token}
-#  phone-number: ${TWILIO_PHONE_NUMBER:+1234567890}
 
 kafka:
   topics:
     booking-created: booking-events
     booking-status-changed: booking-events
     review-created: review.created
-    message-received: message.received
+    message-received: message-notifications
     user-registered: user.registered
     skill-match-found: skill.match.found
 

@@ -17,17 +17,20 @@ public class MessageEventConsumer {
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "message.received", groupId = "notification-service-group")
-    public void consumeMessageReceived(String message) {
-        try {
-            log.info(" Received message.received event: {}", message);
+    @KafkaListener(topics = "message-notifications", groupId = "notification-service-group",  containerFactory = "kafkaListenerContainerFactory")
+    public void handleMessageNotification(MessageReceivedEvent event) {
+        log.info(" KAFKA: Received message notification event");
+        log.info(" From: {} ({})", event.getSenderName(), event.getSenderId());
+        log.info(" To: {} ({})", event.getReceiverEmail(), event.getReceiverId());
+        log.info(" Content: {}", event.getMessageContent());
 
-            MessageReceivedEvent event = objectMapper.readValue(message, MessageReceivedEvent.class);
+        try {
+            // Send notification via NotificationService
             notificationService.sendNewMessageNotification(event);
 
-            log.info(" Successfully processed message.received event for message ID: {}", event.getMessageId());
+            log.info(" Message notification sent successfully");
         } catch (Exception e) {
-            log.error(" Error processing message.received event", e);
+            log.error(" Failed to send message notification: {}", e.getMessage(), e);
         }
     }
 }

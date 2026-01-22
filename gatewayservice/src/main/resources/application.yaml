@@ -8,7 +8,7 @@ spring:
       server:
         webflux:
           routes:
-            # ✅ Auth Service - NO FILTER (public endpoints)
+            #  Auth Service - NO FILTER (public endpoints)
             - id: authService
               uri: lb://AUTHSERVICE
               predicates:
@@ -22,7 +22,7 @@ spring:
 
 
 
-            # ✅ User Profile Service - PUBLIC endpoints (no auth required)
+            #  User Profile Service - PUBLIC endpoints (no auth required)
             - id: userprofile-public-exists
               uri: lb://USERPROFILE
               predicates:
@@ -46,7 +46,7 @@ spring:
                     regexp: /api/users/(?<segment>.*)
                     replacement: /api/users/${segment}
 
-            # ✅ User Profile Service - PROTECTED endpoints (auth required)
+            # User Profile Service - PROTECTED endpoints (auth required)
             - id: userprofile-protected
               uri: lb://USERPROFILE
               predicates:
@@ -54,7 +54,7 @@ spring:
               filters:
                 - AuthenticationFilter
 
-            # ✅ Skills Service - WITH FILTER (protected)
+            #  Skills Service - WITH FILTER (protected)
             - id: skillservice
               uri: lb://SKILLSERVICE
               predicates:
@@ -78,6 +78,17 @@ spring:
 
 
 
+            - id: chat-service
+              uri: lb://CHAT-SERVICE
+              predicates:
+                - Path=/api/chat/**,/api/messages/**
+              filters:
+                - AuthenticationFilter
+
+
+
+
+
 
 
 
@@ -92,7 +103,7 @@ eureka:
 
 
       instance:
-        prefer-ip-address: true          # ✅ Use IP instead of hostname
+        prefer-ip-address: true          #  Use IP instead of hostname
         hostname: localhost
 
 app:

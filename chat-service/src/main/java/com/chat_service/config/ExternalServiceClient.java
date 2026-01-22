@@ -1,12 +1,11 @@
-package com.bookingservice.bookingservice.config;
+package com.chat_service.config;
 
-import lombok.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -15,45 +14,16 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 public class ExternalServiceClient {
-    private final WebClient webClientBuilder;
 
-    public boolean validateUser(UUID userId) {
-        try {
-            return Boolean.TRUE.equals(webClientBuilder
-                    .get()
-                    .uri("/api/users/{id}/exists", userId)
-                    .retrieve()
-                    .bodyToMono(Boolean.class)
-                    .block());
-        } catch (Exception e) {
-            log.error("Failed to validate user {}: {}", userId, e.getMessage());
-            return false;
-        }
-    }
+    private final WebClient webClient;
 
 
-
-
-    public SkillDetails getSkill(UUID skillId) {
-        try {
-            return webClientBuilder
-                    .get()
-                    .uri("http://SKILLSERVICE/api/search/{id}", skillId)
-                    .retrieve()
-                    .bodyToMono(SkillDetails.class)
-                    .block();
-        } catch (Exception e) {
-            log.error("Failed to fetch skill {}: {}", skillId, e.getMessage());
-            return null;
-        }
-    }
-
-    public Map<String, Object> getUserDetails(UUID userId) {
+    public Map<String, Object> getUserDetails(String userId) {
         try {
             log.info(" Fetching user details for userId: {}", userId);
 
             // Call the new endpoint: /api/users/{userId}
-            Map<String, Object> response = webClientBuilder
+            Map response = webClient
                     .get()
                     .uri("http://USERPROFILE/api/users/{id}", userId)
                     .retrieve()
@@ -80,18 +50,18 @@ public class ExternalServiceClient {
                 log.info(" Fetched user details: name={}, email={}", name, email);
                 return userDetails;
             } else {
-                log.warn("⚠ User Service returned null for userId: {}", userId);
-                return getFallbackUserDetails(userId);
+                log.warn(" User Service returned null for userId: {}", userId);
+                return getFallbackUserDetails(UUID.fromString(userId));
             }
 
         } catch (WebClientResponseException e) {
             log.error(" User Service error for userId: {}. Status: {}, Body: {}",
                     userId, e.getStatusCode(), e.getResponseBodyAsString());
-            return getFallbackUserDetails(userId);
+            return getFallbackUserDetails(UUID.fromString(userId));
         } catch (Exception e) {
             log.error(" Failed to fetch user details for userId: {}. Error: {}",
                     userId, e.getMessage());
-            return getFallbackUserDetails(userId);
+            return getFallbackUserDetails(UUID.fromString(userId));
         }
     }
 
@@ -102,24 +72,4 @@ public class ExternalServiceClient {
         fallback.put("email", "user-" + userId.toString().substring(0, 8) + "@example.com");
         return fallback;
     }
-
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class SkillDetails {
-        private UUID id;
-        private UUID userId;
-        private String title;
-        private String description;
-        private BigDecimal pricePerHour;
-        private String status;
-
-        public String getName() {
-            return this.title;
-        }
-    }
 }
-
-
