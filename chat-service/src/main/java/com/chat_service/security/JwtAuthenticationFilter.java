@@ -33,24 +33,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
         try {
+            log.info("Processing request: {} {}", request.getMethod(), request.getServletPath());
+
+            // 1. Trust Gateway Authentication
+            String gatewayUserId = request.getHeader("X-User-Id");
+            log.info("X-User-Id header: {}", gatewayUserId);
+
+            if (gatewayUserId != null) {
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        gatewayUserId,
+                        null,
+                        new ArrayList<>());
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // 2. Fallback: Direct JWT Validation
             String authHeader = request.getHeader("Authorization");
 
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 String jwt = authHeader.substring(7);
                 String userId = jwtUtil.extractUserId(jwt);
-                String username = jwtUtil.extractUsername(jwt);
 
                 if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     if (jwtUtil.validateToken(jwt)) {
-                        UsernamePasswordAuthenticationToken authToken =
-                                new UsernamePasswordAuthenticationToken(
-                                        userId,
-                                        null,
-                                        new ArrayList<>()
-                                );
+                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                                userId,
+                                null,
+                                new ArrayList<>());
 
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -61,11 +77,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             log.error(" JWT authentication error: {}", e.getMessage());
+            // Important: Do NOT proceed down chain if auth failed exception occurs?
+            // Actually, if auth fails, we usually just continue anonymously or let filter
+            // chain handle 403.
+            // But here we just log and continue.
         }
 
         filterChain.doFilter(request, response);
-
     }
-
-
 }

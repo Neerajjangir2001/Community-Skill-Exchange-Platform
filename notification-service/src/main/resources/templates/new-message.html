@@ -1,26 +1,56 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Message</title>
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-<div style="background-color: #9C27B0; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h2 style="color: white; margin: 0;">💬 New Message</h2>
-</div>
 
-<div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
-    <p>You have a new message from <strong th:text="${senderName}"></strong>:</p>
+<body
+    style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: 'Helvetica', 'Arial', sans-serif; -webkit-font-smoothing: antialiased;">
+    <div
+        style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+        <!-- Header -->
+        <div
+            style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 40px 20px; text-align: center;">
+            <div
+                style="width: 64px; height: 64px; background-color: rgba(255, 255, 255, 0.2); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                <span style="font-size: 32px;">💬</span>
+            </div>
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700;">New Message</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 8px 0 0; font-size: 14px;">You have unread messages in
+                your inbox</p>
+        </div>
 
-    <div style="background-color: white; padding: 20px; margin: 20px 0; border-left: 4px solid #9C27B0; border-radius: 5px;">
-        <p th:text="${messagePreview}"></p>
+        <!-- Content -->
+        <div style="padding: 40px 32px;">
+            <p style="color: #374151; font-size: 16px; margin: 0 0 24px; line-height: 1.6;">Hi,</p>
+            <p style="color: #4b5563; font-size: 16px; margin: 0 0 32px; line-height: 1.6;">You have received a new
+                message from <strong th:text="${senderName}" style="color: #6366f1;">Sender</strong>.</p>
+
+            <!-- Message Bubble -->
+            <div
+                style="background-color: #f3f4f6; border-radius: 0 16px 16px 16px; padding: 20px; margin-left: 10px; margin-bottom: 40px; position: relative;">
+                <div
+                    style="position: absolute; top: 0; left: -10px; width: 0; height: 0; border-top: 10px solid #f3f4f6; border-left: 10px solid transparent;">
+                </div>
+                <p style="color: #1f2937; font-size: 15px; margin: 0; line-height: 1.6; font-style: italic;"
+                    th:text="${messagePreview}">"Message content..."</p>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="http://localhost:3000/chat"
+                    style="display: inline-block; background-color: #6366f1; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 32px; border-radius: 9999px; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);">Reply
+                    Now</a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">© 2025 Skill Exchange. All rights reserved.</p>
+        </div>
     </div>
-
-    <div style="text-align: center; margin: 30px 0;">
-        <a href="http://localhost:3000/messages" style="background-color: #9C27B0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">View Message</a>
-    </div>
-
-    <p style="margin-top: 30px;">Best regards,<br/><strong>Skill Exchange Team</strong></p>
-</div>
 </body>
+
 </html>

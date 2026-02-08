@@ -46,23 +46,20 @@ public class securityConfig {
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
-//                .cors(cors -> {})
+                .cors(org.springframework.security.config.Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(sess ->
-                        sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                ).authenticationProvider(authenticationProvider())
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/auth/users/**").permitAll()
+                        .anyRequest().authenticated())
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider())
 
-        .logout(logout -> logout
-                .logoutUrl("/api/auth/logout")
-                .addLogoutHandler(customLogoutHandler)
-                .logoutSuccessHandler((request, response, authentication) -> {
-                    response.setStatus(HttpServletResponse.SC_OK);
-                })
-        );
-
+                .logout(logout -> logout
+                        .logoutUrl("/api/auth/logout")
+                        .addLogoutHandler(customLogoutHandler)
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                        }));
 
         // Use injected filter
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -74,7 +71,6 @@ public class securityConfig {
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -91,18 +87,18 @@ public class securityConfig {
         return configuration.getAuthenticationManager();
     }
 
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080"));
+        configuration
+                .setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080", "http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
-        return new UrlBasedCorsConfigurationSource() {{
-            registerCorsConfiguration("/**", configuration);
-        }};
+        return new UrlBasedCorsConfigurationSource() {
+            {
+                registerCorsConfiguration("/**", configuration);
+            }
+        };
     }
 }
-
-

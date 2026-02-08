@@ -20,4 +20,7 @@ public class ConversationDTO {
     private int unreadCount;
     private boolean archived;
     private boolean muted;
+    private java.util.Map<String, String> participantNames; // ID -> Name mapping
+    private java.util.Map<String, String> participantRoles; // ID -> Role mapping (e.g., "Student", "Mentor")
+    private java.util.Map<String, String> participantLocations; // ID -> Location mapping (e.g., "New York, USA")
 }

@@ -4,8 +4,8 @@ spring:
 
   datasource:
     url: jdbc:postgresql://localhost:5432/community-skill-db
-    username: postgres
-    password: Neeraj2001@
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -16,9 +16,21 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+kafka:
+  topic:
+    user-registered: user.registered
+
 app:
   jwt:
-    secret: "bXktc3VwZXItc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tMjAyNA=="
+    secret: ${JWT_SECRET}
     access-token-expiration-ms: 3600000
     refresh-token-expiration-ms: 2592000000
 
@@ -33,7 +45,7 @@ eureka:
 
 
       instance:
-        prefer-ip-address: true          # ✅ Use IP instead of hostname
+        prefer-ip-address: true          #  Use IP instead of hostname
         hostname: localhost
 
 server:

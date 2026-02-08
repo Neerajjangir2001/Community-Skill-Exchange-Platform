@@ -11,9 +11,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface MessageRepository extends MongoRepository<Message,String> {
+public interface MessageRepository extends MongoRepository<Message, String> {
 
     // Find messages in a conversation
+    Page<Message> findByConversationIdOrderByTimestampAsc(String conversationId, Pageable pageable);
+
+    // Find messages in a conversation ordered by timestamp descending
     Page<Message> findByConversationIdOrderByTimestampDesc(String conversationId, Pageable pageable);
 
     // Find messages between two users
@@ -29,6 +32,13 @@ public interface MessageRepository extends MongoRepository<Message,String> {
     // Find messages by conversation and status
     List<Message> findByConversationIdAndStatus(String conversationId, MessageStatus status);
 
+    // Find messages by conversation where status is NOT value (e.g. NOT READ)
+    List<Message> findByConversationIdAndStatusNot(String conversationId, MessageStatus status);
+
     // Find messages after a timestamp
     List<Message> findByConversationIdAndTimestampAfter(String conversationId, LocalDateTime timestamp);
+
+    // Count unread messages in a conversation for a specific receiver (NOT READ)
+    long countByConversationIdAndReceiverIdAndStatusNot(String conversationId, String receiverId, MessageStatus status);
+
 }

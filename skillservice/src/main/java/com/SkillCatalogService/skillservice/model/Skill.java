@@ -1,6 +1,7 @@
 package com.SkillCatalogService.skillservice.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
@@ -12,8 +13,12 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Data @Builder @NoArgsConstructor @AllArgsConstructor
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "skills")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Skill {
 
     @Id
@@ -31,10 +36,7 @@ public class Skill {
     private String description;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-            name = "skill_tags",
-            joinColumns = @JoinColumn(name = "skill_id")
-    )
+    @CollectionTable(name = "skill_tags", joinColumns = @JoinColumn(name = "skill_id"))
     @Column(name = "tag")
     @BatchSize(size = 100)
     @Builder.Default

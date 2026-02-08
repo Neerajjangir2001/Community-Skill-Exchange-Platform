@@ -26,8 +26,9 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: skillexchange.noreply@gmail.com
-    password: ${PASSWORD_EMAIL}
+    username: ${EMAIL}
+    password: ${EMAIL_PASSWORD}
+
 
     properties:
       mail:
@@ -46,6 +47,11 @@ onesignal:
   rest-api-key: ${ONESIGNAL_REST_API_KEY}
   enabled: true
 
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiration-ms: 3600000
+    refresh-token-expiration-ms: 2592000000
 
 websocket:
   allowed-origins: "*"

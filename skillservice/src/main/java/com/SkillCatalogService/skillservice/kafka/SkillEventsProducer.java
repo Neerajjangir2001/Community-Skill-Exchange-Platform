@@ -17,7 +17,7 @@ import java.util.UUID;
 @Slf4j
 public class SkillEventsProducer {
 
-    private final KafkaTemplate<String, String> kafkaTemplate;  //  Changed to <String, String>
+    private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
     //  Publish CREATE event
@@ -38,8 +38,7 @@ public class SkillEventsProducer {
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send(topic, skill.getId().toString(), message);
 
-//            System.out.println(" Published SKILL_CREATED: " + skill.getId());
-            new RuntimeException(" Published SKILL_CREATED: " + skill.getId());
+            throw new RuntimeException(" Published SKILL_CREATED: " + skill.getId());
 
         } catch (Exception e) {
             System.err.println(" Failed to publish SKILL_CREATED: " + e.getMessage());
@@ -66,11 +65,10 @@ public class SkillEventsProducer {
 
             new RuntimeException(" Published SKILL_UPDATED: " + skill.getId());
 
-//            System.out.println(" Published SKILL_UPDATED: " + skill.getId());
         } catch (Exception e) {
 
             new RuntimeException(" Failed to publish SKILL_UPDATED: " + e.getMessage());
-//            System.err.println(" Failed to publish SKILL_UPDATED: " + e.getMessage());
+
         }
     }
 
@@ -86,11 +84,9 @@ public class SkillEventsProducer {
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send(topic, skillId.toString(), message);
 
-//            System.out.println("Published SKILL_DELETED: " + skillId);
-
             new RuntimeException(" Published SKILL_DELETED: " + skillId);
         } catch (Exception e) {
-//            System.err.println("Failed to publish SKILL_DELETED: " + e.getMessage());
+
             new RuntimeException(" Failed to publish SKILL_DELETED: " + e.getMessage());
         }
     }

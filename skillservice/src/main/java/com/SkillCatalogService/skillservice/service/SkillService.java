@@ -31,41 +31,24 @@ public class SkillService {
     private final SkillRepository repository;
     private final SkillSearchIndexer indexer;
     private final SkillEventsProducer producer;
-    private final AuthClient webClient;
-    private final SkillRepository skillRepository;
+    private final AuthClient webClient; // Keep for validation
+    private final UserClient userClient; // Add for details
     private final KafkaProperties kafkaProperties;
     private final SkillSearchService searchService;
 
     @Value("${kafka.topic.skill-events}")
     private String skillTopic;
 
-
-    private <T> T executeWithFallback(
-            Supplier<T> openSearchOperation,
-            Supplier<T> databaseOperation,
-            String operationName) {
-        try {
-            log.debug("Attempting {} via OpenSearch", operationName);
-            return openSearchOperation.get();
-        } catch (Exception e) {
-            log.warn("OpenSearch failed for {}, falling back to database: {}",
-                    operationName, e.getMessage());
-            return databaseOperation.get();
-        }
-    }
-
-
     // ==================== PUBLIC METHODS ====================
 
-
     public List<SkillResponse> getAllSkills(String search, String level) {
-        return executeWithFallback(
+        List<SkillResponse> responses = executeWithFallback(
                 // OpenSearch operation
                 () -> searchService.getAllSkills(search, level),
                 // Database fallback
                 () -> getAllSkillsFromDB(search, level),
-                "getAllSkills"
-        );
+                "getAllSkills");
+        return enrichSkillResponses(responses);
     }
 
     private List<SkillResponse> getAllSkillsFromDB(String search, String level) {
@@ -85,12 +68,11 @@ public class SkillService {
         log.info("Fetching skill by id: {}", id);
         Skill skill = repository.findById(id)
                 .orElseThrow(() -> new SkillNotFoundException("Skill not found: " + id));
-        return toResponse(skill);
+        return enrichSingleResponse(toResponse(skill));
     }
 
-
     public List<SkillResponse> getSkillsByUserId(UUID userId) {
-        return executeWithFallback(
+        List<SkillResponse> responses = executeWithFallback(
                 // OpenSearch operation
                 () -> searchService.getSkillsByUserId(userId),
                 // Database fallback
@@ -100,21 +82,34 @@ public class SkillService {
                             .map(this::toResponse)
                             .collect(Collectors.toList());
                 },
-                "getSkillsByUserId"
-        );
+                "getSkillsByUserId");
+        return enrichSkillResponses(responses);
     }
-
 
     public List<SkillResponse> searchSkills(String query) {
         log.info("Searching skills with query: {}", query);
 
-        return executeWithFallback(
-                // OpenSearch operation
+        // 1. Get skills from OpenSearch (or DB fallback)
+        List<SkillResponse> skillResults = executeWithFallback(
                 () -> searchService.searchSkillsByQuery(query),
-                // Database fallback
                 () -> searchSkillsFromDB(query),
-                "searchSkills"
-        );
+                "searchSkills");
+
+        // 2. Get skills by Mentor (Search Users -> OpenSearch Skills fallback to DB)
+        List<SkillResponse> mentorResults = searchSkillsByMentor(query);
+
+        // 3. Merge results (using a Map to ensure uniqueness by ID)
+        Map<UUID, SkillResponse> uniqueSkills = new HashMap<>();
+
+        if (skillResults != null) {
+            skillResults.forEach(s -> uniqueSkills.put(s.getId(), s));
+        }
+
+        if (mentorResults != null) {
+            mentorResults.forEach(s -> uniqueSkills.put(s.getId(), s));
+        }
+
+        return enrichSkillResponses(new ArrayList<>(uniqueSkills.values()));
     }
 
     private List<SkillResponse> searchSkillsFromDB(String query) {
@@ -127,8 +122,43 @@ public class SkillService {
                 .collect(Collectors.toList());
     }
 
-    // ==================== TEACHER METHODS ====================
+    private List<SkillResponse> searchSkillsByMentor(String query) {
+        log.info("Searching skills by mentor name: {}", query);
+        List<SkillResponse> providerMatches = new ArrayList<>();
+        try {
+            // Find users matching the name
+            List<Map<String, Object>> users = userClient.searchUsers(query);
+            if (users != null && !users.isEmpty()) {
+                log.info("Found {} users matching query '{}'", users.size(), query);
+                List<UUID> userIds = users.stream()
+                        .map(u -> UUID.fromString(String.valueOf(u.get("userId"))))
+                        .collect(Collectors.toList());
 
+                log.info("Searching skills for user IDs: {}", userIds);
+
+                // For each user, fetch their skills using OpenSearch (with DB fallback)
+                for (UUID uid : userIds) {
+                    List<SkillResponse> skills = executeWithFallback(
+                            () -> searchService.getSkillsByUserId(uid),
+                            () -> repository.findAllByUserId(uid).stream()
+                                    .map(this::toResponse)
+                                    .collect(Collectors.toList()),
+                            "getSkillsByUserId-" + uid);
+                    providerMatches.addAll(skills);
+                }
+            } else {
+                log.info("No users found matching query '{}'", query);
+            }
+        } catch (Exception e) {
+            log.error("Failed to search skills by provider: {}", e.getMessage());
+        }
+
+        return providerMatches.stream()
+                .filter(s -> "ACTIVE".equals(s.getStatus()))
+                .collect(Collectors.toList());
+    }
+
+    // ==================== TEACHER METHODS ====================
 
     @Transactional
     public SkillResponse createSkill(SkillRequest req, UUID teacherId) {
@@ -174,9 +204,8 @@ public class SkillService {
             log.error("Failed to publish skill created event: {}", e.getMessage());
         }
 
-        return toResponse(savedSkill);
+        return enrichSingleResponse(toResponse(savedSkill));
     }
-
 
     @Transactional
     public SkillResponse updateSkill(UUID skillId, SkillRequest req, UUID teacherId) {
@@ -221,9 +250,8 @@ public class SkillService {
             log.error("Failed to publish skill update event: {}", e.getMessage());
         }
 
-        return toResponse(savedSkill);
+        return enrichSingleResponse(toResponse(savedSkill));
     }
-
 
     @Transactional
     public void deleteSkill(UUID skillId, UUID teacherId) {
@@ -232,8 +260,7 @@ public class SkillService {
         // Find skill and verify ownership
         Skill skill = repository.findByIdAndUserId(skillId, teacherId)
                 .orElseThrow(() -> new SkillNotFoundException(
-                        "Skill not found or you don't have permission to delete it"
-                ));
+                        "Skill not found or you don't have permission to delete it"));
 
         try {
             // Delete from OpenSearch index
@@ -254,14 +281,13 @@ public class SkillService {
 
     // ==================== ADMIN METHODS ====================
 
-
     public List<SkillResponse> getAllSkillsAdmin() {
         log.info("Admin fetching all skills (including inactive)");
-        return repository.findAll().stream()
+        List<SkillResponse> responses = repository.findAll().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+        return enrichSkillResponses(responses);
     }
-
 
     public Map<String, Object> getSkillStats() {
         log.info("Admin fetching skill statistics");
@@ -308,7 +334,65 @@ public class SkillService {
                 .build();
     }
 
+    private List<SkillResponse> enrichSkillResponses(List<SkillResponse> responses) {
+        if (responses == null || responses.isEmpty()) {
+            return Collections.emptyList();
+        }
 
+        Set<UUID> userIds = responses.stream()
+                .map(SkillResponse::getUserId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
+        Map<UUID, String> providerNames = new HashMap<>();
+        for (UUID userId : userIds) {
+            try {
+                Map<String, Object> userDetails = userClient.getUserDetails(userId);
+                String name = null;
+                if (userDetails != null) {
+                    if (userDetails.get("displayName") != null) {
+                        name = (String) userDetails.get("displayName");
+                    } else if (userDetails.get("name") != null) {
+                        name = (String) userDetails.get("name");
+                    }
+                }
+
+                if (name == null) {
+                    name = "Mentor " + userId.toString().substring(0, 8);
+                }
+                providerNames.put(userId, name);
+            } catch (Exception e) {
+                log.error("Failed to fetch user details for {}", userId, e);
+                providerNames.put(userId, "Mentor " + userId.toString().substring(0, 8));
+            }
+        }
+
+        responses.forEach(response -> {
+            String name = providerNames.getOrDefault(response.getUserId(), "Unknown Mentor");
+            response.setProviderName(name);
+        });
+
+        return responses;
+    }
+
+    private SkillResponse enrichSingleResponse(SkillResponse response) {
+        if (response == null)
+            return null;
+        return enrichSkillResponses(Collections.singletonList(response)).get(0);
+    }
+
+    private <T> T executeWithFallback(
+            Supplier<T> openSearchOperation,
+            Supplier<T> databaseOperation,
+            String operationName) {
+        try {
+            log.debug("Attempting {} via OpenSearch", operationName);
+            return openSearchOperation.get();
+        } catch (Exception e) {
+            log.warn("OpenSearch failed for {}, falling back to database: {}",
+                    operationName, e.getMessage());
+            return databaseOperation.get();
+        }
+    }
 
 }

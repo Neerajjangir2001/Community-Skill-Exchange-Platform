@@ -1,6 +1,5 @@
 package com.SkillCatalogService.skillservice.openSearch;
 
-
 import com.SkillCatalogService.skillservice.exceptionHandle.allExceprionHandles.SkillDeletionException;
 import com.SkillCatalogService.skillservice.exceptionHandle.allExceprionHandles.SkillNotFoundException;
 import com.SkillCatalogService.skillservice.model.Skill;
@@ -18,13 +17,12 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 public class SkillSearchIndexer {
-    private  final OpenSearchClient openSearchClient;
-
+    private final OpenSearchClient openSearchClient;
 
     @Value("${opensearch.index}")
     private String indexName;
 
-    public void indexSkills(Skill skill)  {
+    public void indexSkills(Skill skill) {
         try {
             openSearchClient.index(i -> i.index(indexName)
                     .id(skill.getId().toString())

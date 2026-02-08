@@ -12,7 +12,7 @@ eureka:
     enable-self-preservation: true
 
     instance:
-      prefer-ip-address: true          # ✅ Use IP instead of hostname
+      prefer-ip-address: true          #  Use IP instead of hostname
       hostname: localhost
 
 server:

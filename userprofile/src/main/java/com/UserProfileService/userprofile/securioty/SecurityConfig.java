@@ -26,22 +26,21 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ PUBLIC ENDPOINTS - GET only, no authentication
+                        // PUBLIC ENDPOINTS - GET only, no authentication
                         .requestMatchers(HttpMethod.GET, "/api/users/*/exists").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/search/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/*").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/internal/**").permitAll()
 
-                        // ❌ PROTECTED ENDPOINTS - Require authentication
+                        // PROTECTED ENDPOINTS - Require authentication
                         .requestMatchers("/api/users/userComeByUserId").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/users/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").authenticated()
 
                         // All other requests require authentication
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -49,4 +48,3 @@ public class SecurityConfig {
         return http.build();
     }
 }
-

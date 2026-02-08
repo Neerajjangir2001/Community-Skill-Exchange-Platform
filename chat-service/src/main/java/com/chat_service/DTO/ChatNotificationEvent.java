@@ -21,4 +21,6 @@ public class ChatNotificationEvent {
     private String receiverEmail;
     private String messageContent;
     private LocalDateTime timestamp;
+    private String conversationId;
+    private com.chat_service.model.MessageStatus status;
 }

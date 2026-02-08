@@ -16,15 +16,13 @@ import java.util.UUID;
 public class AuthClient {
     private final WebClient webClient;
 
-
-
     public Boolean validateUser(UUID userId) {
         try {
-            return   webClient.get().uri("/auth/exists/{userId}", userId)
+            return webClient.get().uri("/auth/exists/{userId}", userId)
                     .retrieve()
                     .bodyToMono(Boolean.class)
                     .block();
-        }catch (WebClientResponseException e){
+        } catch (WebClientResponseException e) {
             e.printStackTrace();
         }
         return false;
@@ -41,8 +39,6 @@ public class AuthClient {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-
-
 
             if (email != null && !email.isEmpty()) {
                 log.info(" Found email for userId {}: {}", userId, email);
@@ -63,8 +59,24 @@ public class AuthClient {
         }
     }
 
-
     private String generateFallbackEmail(UUID userId) {
         return "user-" + userId.toString().substring(0, 8) + "@example.com";
+    }
+
+    public void deleteUser(UUID userId) {
+        try {
+            webClient.delete()
+                    .uri("/auth/users/{userId}", userId)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+            log.info("Deleted user {} from Auth Service", userId);
+        } catch (WebClientResponseException e) {
+            log.error("Failed to delete user from Auth Service. Status: {}", e.getStatusCode());
+            throw new RuntimeException("Failed to delete user credentials", e);
+        } catch (Exception e) {
+            log.error("Unexpected error deleting user from Auth Service", e);
+            throw new RuntimeException("Failed to delete user credentials", e);
+        }
     }
 }

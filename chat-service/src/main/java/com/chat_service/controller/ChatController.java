@@ -2,6 +2,7 @@ package com.chat_service.controller;
 
 import com.chat_service.DTO.ConversationDTO;
 import com.chat_service.service.ChatService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +17,10 @@ import java.util.List;
 @Slf4j
 public class ChatController {
 
-
     private final ChatService chatService;
 
-    //Get all conversations for user
+
+    // Get all conversations for user
     @GetMapping("/conversations")
     public ResponseEntity<List<ConversationDTO>> getUserConversations(@RequestParam String userId) {
         log.info(" GET /api/chat/conversations - User: {}", userId);
@@ -27,8 +28,7 @@ public class ChatController {
         return ResponseEntity.ok(conversations);
     }
 
-
-    //Get conversation between two users
+    // Get conversation between two users
     @GetMapping("/conversation")
     public ResponseEntity<ConversationDTO> getConversation(
             @RequestParam String user1,
@@ -38,7 +38,6 @@ public class ChatController {
         ConversationDTO conversation = chatService.getConversation(user1, user2);
         return ResponseEntity.ok(conversation);
     }
-
 
     // Archive conversation
     @PutMapping("/conversation/{conversationId}/archive")
@@ -58,4 +57,16 @@ public class ChatController {
         chatService.muteConversation(conversationId, muted);
         return ResponseEntity.ok().build();
     }
+
+    // Delete conversation
+    @DeleteMapping("/conversation/{conversationId}")
+    public ResponseEntity<Void> deleteConversation(
+            @PathVariable String conversationId,
+            @RequestParam String userId) {
+
+        log.info(" DELETE /api/chat/conversation/{} - User: {}", conversationId, userId);
+        chatService.deleteConversation(conversationId, userId);
+        return ResponseEntity.ok().build();
+    }
+
 }

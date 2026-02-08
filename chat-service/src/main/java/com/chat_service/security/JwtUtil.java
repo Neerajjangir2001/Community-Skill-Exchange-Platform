@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+
 @Component
 @Slf4j
 public class JwtUtil {
@@ -21,14 +22,12 @@ public class JwtUtil {
     @Value("${app.jwt.access-token-expiration-ms}")
     private Long expiration;
 
-
     private SecretKey getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-
-     // Extract username from token
+    // Extract username from token
     public String extractUsername(String token) {
         try {
             Claims claims = extractAllClaims(token);
@@ -39,24 +38,20 @@ public class JwtUtil {
         }
     }
 
-
-
-
-
-     // Extract user ID from token
+    // Extract user ID from token
 
     public String extractUserId(String token) {
         try {
             Claims claims = extractAllClaims(token);
-            return claims.get("userId", String.class);
+            String userId = claims.get("userId", String.class);
+            return userId != null ? userId : claims.getSubject();
         } catch (Exception e) {
             log.error("Error extracting userId from token: {}", e.getMessage());
             return null;
         }
     }
 
-
-     //Extract all claims from token
+    // Extract all claims from token
 
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
@@ -66,8 +61,7 @@ public class JwtUtil {
                 .getBody();
     }
 
-
-     // Check if token is expired
+    // Check if token is expired
 
     public Boolean isTokenExpired(String token) {
         try {
@@ -78,8 +72,7 @@ public class JwtUtil {
         }
     }
 
-
-     //Validate token
+    // Validate token
 
     public Boolean validateToken(String token, String username) {
         try {
@@ -91,8 +84,7 @@ public class JwtUtil {
         }
     }
 
-
-     // Validate token (simple version)
+    // Validate token (simple version)
 
     public Boolean validateToken(String token) {
         try {

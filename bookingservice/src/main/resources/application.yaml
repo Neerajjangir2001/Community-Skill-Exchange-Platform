@@ -10,8 +10,8 @@ spring:
 
   datasource:
     url: jdbc:postgresql://localhost:5432/booking_db?reWriteBatchedInserts=true
-    username: postgres
-    password: Neeraj2001@
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     hikari:
       maximum-pool-size: 10
 
@@ -53,13 +53,13 @@ eureka:
 
 
       instance:
-        prefer-ip-address: true          # ✅ Use IP instead of hostname
+        prefer-ip-address: true          #  Use IP instead of hostname
         hostname: localhost
 
 
 app:
   jwt:
-    secret: "bXktc3VwZXItc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tMjAyNA=="
+    secret: ${JWT_SECRET}
     access-token-expiration-ms: 3600000
     refresh-token-expiration-ms: 2592000000
 

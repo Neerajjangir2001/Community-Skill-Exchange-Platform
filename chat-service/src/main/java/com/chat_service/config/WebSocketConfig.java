@@ -35,12 +35,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Value("${websocket.allowed-origins:*}")
     private String allowedOrigins;
 
-
-    @Bean
-    @LoadBalanced
-    public WebClient.Builder webClientBuilder() {
-        return WebClient.builder();
-    }
+//
+//    @Bean
+//    @LoadBalanced
+//    public WebClient.Builder webClientBuilder() {
+//        return WebClient.builder();
+//    }
 
     @Bean
     public WebClient userServiceWebClient(WebClient.Builder webClientBuilder) {

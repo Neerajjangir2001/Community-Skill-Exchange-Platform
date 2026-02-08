@@ -1,6 +1,5 @@
 package com.notification_service.service;
 
-
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +8,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
-
 
 import org.thymeleaf.context.Context;
 
@@ -21,12 +19,14 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
 
+    @org.springframework.beans.factory.annotation.Value("${spring.mail.username}")
+    private String senderEmail;
 
     public boolean sendEmail(String to, String subject, String templateName, Context context) {
         try {
             log.info(" Attempting to send email to: {}", to);
 
-            //  Validate recipient email
+            // Validate recipient email
             if (to == null || to.trim().isEmpty()) {
                 log.error(" Recipient email is empty!");
                 return false;
@@ -41,7 +41,7 @@ public class EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
-            helper.setFrom("skillexchange.noreply@gmail.com");  //  Same as username
+            helper.setFrom(senderEmail); // Use configured username
 
             mailSender.send(message);
 
@@ -60,9 +60,7 @@ public class EmailService {
         }
     }
 
-
-
-    public boolean sendSimpleEmail(String to, String subject, String body){
+    public boolean sendSimpleEmail(String to, String subject, String body) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -74,7 +72,7 @@ public class EmailService {
             mailSender.send(message);
             log.info(" Simple email sent successfully to: {}", to);
             return true;
-        }catch (MessagingException e) {
+        } catch (MessagingException e) {
             log.error(" Failed to send simple email to: {}", to, e);
             return false;
         }

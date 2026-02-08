@@ -1,152 +1,83 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking Request Submitted</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-            border-radius: 10px 10px 0 0;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-        .content {
-            background: #f9f9f9;
-            padding: 30px;
-            border-radius: 0 0 10px 10px;
-        }
-        .booking-card {
-            background: white;
-            padding: 20px;
-            margin: 20px 0;
-            border-left: 4px solid #4caf50;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .booking-card h3 {
-            margin-top: 0;
-            color: #4caf50;
-        }
-        .detail-row {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-        .label {
-            font-weight: bold;
-            color: #666;
-            display: inline-block;
-            width: 140px;
-        }
-        .value {
-            color: #333;
-        }
-        .price {
-            font-size: 24px;
-            font-weight: bold;
-            color: #4caf50;
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 5px 15px;
-            background: #ffc107;
-            color: white;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .info-box {
-            background: #e3f2fd;
-            border-left: 4px solid #2196f3;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            font-size: 12px;
-        }
-    </style>
+    <title>Booking Submitted</title>
 </head>
-<body>
-<div class="header">
-    <h1>✅ Booking Request Submitted!</h1>
-</div>
 
-<div class="content">
-    <p>Hi <strong th:text="${studentName}">Student</strong>,</p>
-
-    <p>Your booking request has been successfully submitted and is waiting for the teacher's confirmation.</p>
-
-    <div class="booking-card">
-        <h3>📚 Your Booking Details</h3>
-
-        <div class="detail-row">
-            <span class="label">Teacher:</span>
-            <span class="value" th:text="${teacherName}">Teacher Name</span>
+<body
+    style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: 'Helvetica', 'Arial', sans-serif; -webkit-font-smoothing: antialiased;">
+    <div
+        style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+        <!-- Header -->
+        <div
+            style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 40px 20px; text-align: center;">
+            <div
+                style="width: 64px; height: 64px; background-color: rgba(255, 255, 255, 0.2); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                <span style="font-size: 32px;">✈️</span>
+            </div>
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700;">Request Sent!</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 8px 0 0; font-size: 14px;">Your booking request is on its
+                way</p>
         </div>
 
-        <div class="detail-row">
-            <span class="label">Skill:</span>
-            <span class="value" th:text="${skillName}">Skill Name</span>
+        <!-- Content -->
+        <div style="padding: 40px 32px;">
+            <p style="color: #374151; font-size: 16px; margin: 0 0 24px; line-height: 1.6;">Hi <strong
+                    th:text="${studentName}" style="color: #111827;">Student</strong>,</p>
+            <p style="color: #4b5563; font-size: 16px; margin: 0 0 32px; line-height: 1.6;">We've sent your request to
+                <strong th:text="${teacherName}" style="color: #6366f1;">Teacher</strong>. They have been notified and
+                will respond shortly.</p>
+
+            <!-- Booking Card -->
+            <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px;">
+                <h3
+                    style="color: #111827; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 16px;">
+                    Request Summary</h3>
+
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 8px 0; color: #6b7280; font-size: 14px; width: 120px;">Skill</td>
+                        <td style="padding: 8px 0; color: #111827; font-size: 14px; font-weight: 600;"
+                            th:text="${skillName}">Skill Name</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Date & Time</td>
+                        <td style="padding: 8px 0; color: #111827; font-size: 14px; font-weight: 600;"
+                            th:text="${sessionTime}">Date & Time</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Price</td>
+                        <td style="padding: 8px 0; color: #10b981; font-size: 14px; font-weight: 700;">₹<span
+                                th:text="${totalPrice}">0.00</span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div
+                style="margin-top: 32px; background-color: #f0f9ff; border-radius: 12px; padding: 20px; border-left: 4px solid #3b82f6;">
+                <h4 style="color: #1e40af; margin: 0 0 8px; font-size: 14px; font-weight: 700;">What happens next?</h4>
+                <ul style="margin: 0; padding-left: 20px; color: #1e3a8a; font-size: 14px; line-height: 1.6;">
+                    <li>Teacher reviews your request</li>
+                    <li>You get notified upon acceptance</li>
+                    <li>Payment is processed only after confirmation</li>
+                </ul>
+            </div>
+
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="http://localhost:3000/bookings"
+                    style="display: inline-block; background-color: #ffffff; color: #6366f1; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 32px; border-radius: 9999px; border: 1px solid #e5e7eb; transition: all 0.2s;">View
+                    My Bookings</a>
+            </div>
         </div>
 
-        <div class="detail-row">
-            <span class="label">Session Time:</span>
-            <span class="value" th:text="${sessionTime}">Time</span>
-        </div>
-
-        <div class="detail-row">
-            <span class="label">Price:</span>
-            <span class="price">₹<span th:text="${totalPrice}">0.00</span></span>
-        </div>
-
-        <div class="detail-row">
-            <span class="label">Booking ID:</span>
-            <span class="value" th:text="${bookingId}">ID</span>
-        </div>
-
-        <div class="detail-row">
-            <span class="label">Status:</span>
-            <span class="status-badge" th:text="${status}">PENDING</span>
+        <!-- Footer -->
+        <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">© 2025 Skill Exchange. All rights reserved.</p>
         </div>
     </div>
-
-    <div class="info-box">
-        <strong>ℹ️ What's Next?</strong>
-        <ul style="margin: 10px 0; padding-left: 20px;">
-            <li>The teacher will review your booking request</li>
-            <li>You'll receive an email notification once they respond</li>
-            <li>You can check your booking status in your dashboard</li>
-        </ul>
-    </div>
-
-    <div style="text-align: center; margin-top: 20px;">
-        <p>Thank you for using Skill Exchange Platform!</p>
-    </div>
-</div>
-
-<div class="footer">
-    <p>This is an automated email from Skill Exchange Platform.</p>
-    <p>© 2025 Skill Exchange. All rights reserved.</p>
-</div>
 </body>
+
 </html>

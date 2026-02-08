@@ -4,6 +4,7 @@ import com.bookingservice.bookingservice.model.Booking;
 import com.bookingservice.bookingservice.model.Status;
 import lombok.*;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -13,7 +14,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BookingResponse {
+public class BookingResponse implements Serializable {
+    private static final long serialVersionUID = 1L;
     private UUID id;
     private UUID userId;
     private UUID providerId;
@@ -27,4 +29,7 @@ public class BookingResponse {
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 
+    private String userName;
+    private String providerName;
+    private String skillTitle;
 }

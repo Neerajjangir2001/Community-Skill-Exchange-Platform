@@ -44,4 +44,19 @@ public class UserEventConsumer {
             log.error(" Error processing skill.match.found event", e);
         }
     }
+
+    @KafkaListener(topics = "user.password.reset", groupId = "notification-service-group")
+    public void consumePasswordReset(String message) {
+        try {
+            log.info(" Received user.password.reset event: {}", message);
+
+            com.notification_service.DTO.PasswordResetEvent event = objectMapper.readValue(message,
+                    com.notification_service.DTO.PasswordResetEvent.class);
+            notificationService.sendPasswordResetEmail(event);
+
+            log.info(" Successfully processed user.password.reset event for email: {}", event.getEmail());
+        } catch (Exception e) {
+            log.error(" Error processing user.password.reset event", e);
+        }
+    }
 }

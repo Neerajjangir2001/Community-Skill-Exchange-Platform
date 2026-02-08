@@ -148,11 +148,6 @@ public class SkillSearchService {
             List<Query> must = new ArrayList<>();
             List<Query> filter = new ArrayList<>();
 
-            // Add status filter (REQUIRED - only show ACTIVE skills)
-//            if (status != null) {
-//                filter.add(Query.of(b -> b.match(m -> m.field("status")
-//                        .query(FieldValue.of(status.name())))));
-//            }
 
             // Text search in title field
             if (search != null && !search.isEmpty()) {

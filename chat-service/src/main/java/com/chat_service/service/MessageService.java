@@ -11,22 +11,15 @@ import com.chat_service.repository.ConversationRepository;
 import com.chat_service.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -36,13 +29,7 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ConversationRepository conversationRepository;
     private final NotificationProducer notificationProducer;
-//    private final RestTemplate restTemplate;
-
     private final ExternalServiceClient externalClient;
-
-//    @Value("${user.service.url:http://localhost:8081}")
-//    private String userServiceUrl;
-
 
     // Send a new message
 
@@ -51,8 +38,7 @@ public class MessageService {
         log.info(" Sending message from {} to {}", senderId, receiverId);
 
         // Get or create conversation
-        String conversationId = getOrCreateConversation(senderId,receiverId);
-
+        String conversationId = getOrCreateConversation(senderId, receiverId);
 
         // Create message
         Message message = Message.builder()
@@ -78,7 +64,7 @@ public class MessageService {
         return convertToDTO(savedMessage);
     }
 
-    //Get conversation messages with pagination
+    // Get conversation messages with pagination
 
     public Page<MessageDTO> getConversationMessages(String conversationId, int page, int size) {
         log.info(" Fetching messages for conversation: {}", conversationId);
@@ -101,7 +87,7 @@ public class MessageService {
         });
     }
 
-    //Mark message as read
+    // Mark message as read
     @Transactional
     public void markAsRead(String conversationId) {
         messageRepository.findById(conversationId).ifPresent(message -> {
@@ -109,94 +95,78 @@ public class MessageService {
             message.setDeliveredAt(LocalDateTime.now());
             messageRepository.save(message);
             log.info(" Message {} marked as read", conversationId);
+            sendStatusUpdateNotificationAsync(message, MessageStatus.READ);
         });
     }
 
-    //Mark all messages in conversation as read
+    // Mark all messages in conversation as read
 
     @Transactional
     public void markConversationAsRead(String conversationId, String userId) {
-        List<Message> unreadMessages = messageRepository.findByConversationIdAndStatus(conversationId, MessageStatus.DELIVERED);
+        List<Message> unreadMessages = messageRepository.findByConversationIdAndStatusNot(conversationId,
+                MessageStatus.READ);
 
         unreadMessages.stream()
                 .filter(msg -> msg.getReceiverId().equals(userId))
                 .forEach(msg -> {
                     msg.setStatus(MessageStatus.READ);
                     msg.setDeliveredAt(LocalDateTime.now());
+                    // Notify sender for each message (or batch? individual for now to be simple)
+                    sendStatusUpdateNotificationAsync(msg, MessageStatus.READ);
                 });
         messageRepository.saveAll(unreadMessages);
         log.info(" Marked {} messages as read in conversation {}", unreadMessages.size(), conversationId);
     }
 
-    //Get unread message count for user
-
+    // Get unread message count
     public long getUnreadCount(String userId) {
         return messageRepository.countByReceiverIdAndStatusNot(userId, MessageStatus.READ);
     }
 
-    //Delete message
-
+    // Delete message
     @Transactional
     public void deleteMessage(String messageId) {
-        messageRepository.findById(messageId).ifPresent(message -> {
-            message.setDeleted(true);
-            messageRepository.save(message);
-            log.info(" Message {} deleted", messageId);
-        });
+        messageRepository.deleteById(messageId);
+        log.info(" Message deleted with ID: {}", messageId);
     }
-
 
     // ========== PRIVATE HELPER METHODS ==========
-    private String getOrCreateConversation(String user1, String user2) {
-        return conversationRepository.findByParticipants(user1,user2)
-                .map(Conversation::getId)
-                .orElseGet(() -> createConversation(user1, user2));
+
+    // Send status update notification (to the SENDER of the message)
+    private void sendStatusUpdateNotificationAsync(Message message, MessageStatus status) {
+        new Thread(() -> {
+            try {
+                // Determine who to notify. content is status update.
+                // We want to notify the original SENDER that their message was READ.
+                String targetUserId = message.getSenderId();
+
+                // Create notification event
+                ChatNotificationEvent event = ChatNotificationEvent.builder()
+                        .messageId(message.getId())
+                        .conversationId(message.getConversationId())
+                        .senderId(message.getSenderId()) // Original sender
+                        .receiverId(targetUserId) // Notification goes to original sender
+                        .messageContent(null) // Content null for status update? Or "Read"
+                        .status(status)
+                        .timestamp(LocalDateTime.now())
+                        .build();
+
+                // We need a way to route this specific notification to the specific user.
+                // sending to /user/{targetUserId}/topic/notifications requires the event to
+                // have receiverId = targetUserId
+                // My NotificationService probably uses event.getReceiverId() to route.
+                // So setting receiverId = targetUserId is correct.
+
+                notificationProducer.sendMessageNotification(event);
+                log.info(" Status update notification ({}) sent to user: {}", status, targetUserId);
+
+            } catch (Exception e) {
+                log.error(" Failed to send status notification: {}", e.getMessage(), e);
+            }
+        }).start();
     }
 
-    private String createConversation(String user1, String user2) {
-        Conversation conversation = Conversation.builder()
-                .participants(List.of(user1, user2))
-                .createdAt(LocalDateTime.now())
-                .unreadCount(0)
-                .archived(false)
-                .muted(false)
-                .build();
-
-        Conversation saved = conversationRepository.save(conversation);
-        log.info("Created new conversation: {}", saved.getId());
-        return saved.getId();
-    }
-
-
-    private void updateConversation(String conversationId, String lastMessage) {
-        conversationRepository.findById(conversationId).ifPresent(conversation -> {
-            conversation.setLastMessageContent(lastMessage);
-            conversation.setLastMessageTime(LocalDateTime.now());
-            conversation.setUnreadCount(conversation.getUnreadCount() + 1);
-            conversationRepository.save(conversation);
-        });
-    }
-
-    private void sendNotification(Message savedMessage) {
-        try {
-            ChatNotificationEvent event = ChatNotificationEvent.builder()
-                    .messageId((savedMessage.getId()))
-                    .senderId((savedMessage.getSenderId()))
-                    .senderName("User")
-                    .receiverId((savedMessage.getReceiverId()))
-                    .receiverEmail("receiver@example.com")
-                    .messageContent(savedMessage.getContent())
-                    .timestamp(savedMessage.getTimestamp())
-                    .build();
-
-            notificationProducer.sendMessageNotification(event);
-            log.info(" Notification sent for message: {}", savedMessage.getId());
-        }catch (Exception e) {
-            log.error(" Failed to send notification: {}", e.getMessage());
-        }
-    }
-
-    //Send notification asynchronously
+    // Send notification asynchronously
     private void sendNotificationAsync(Message message) {
         new Thread(() -> {
             try {
@@ -207,7 +177,7 @@ public class MessageService {
                         : "Unknown User";
 
                 // Get receiver info from User Service
-                Map<String, Object> receiverInfo =externalClient.getUserDetails(message.getReceiverId());
+                Map<String, Object> receiverInfo = externalClient.getUserDetails(message.getReceiverId());
                 String receiverEmail = receiverInfo != null
                         ? (String) receiverInfo.get("email")
                         : "unknown@example.com";
@@ -215,11 +185,13 @@ public class MessageService {
                 // Create notification event
                 ChatNotificationEvent event = ChatNotificationEvent.builder()
                         .messageId((message.getId()))
+                        .conversationId(message.getConversationId())
                         .senderId((message.getSenderId()))
                         .senderName(senderName)
                         .receiverId((message.getReceiverId()))
                         .receiverEmail(receiverEmail)
                         .messageContent(message.getContent())
+                        .status(message.getStatus())
                         .timestamp(message.getTimestamp())
                         .build();
 
@@ -233,30 +205,41 @@ public class MessageService {
         }).start();
     }
 
-//Get user info from User Service
-//    private Map<String, Object> getUserInfo(String userId) {
-//        try {
-//            String url = externalClient.getUserDetails(userId).toString();
-//
-//            HttpHeaders headers = new HttpHeaders();
-//            HttpEntity<Void> entity = new HttpEntity<>(headers);
-//
-//            ResponseEntity<Map> response = restTemplate.exchange(
-//                    url,
-//                    HttpMethod.GET,
-//                    entity,
-//                    Map.class
-//            );
-//
-//            if (response.getStatusCode().is2xxSuccessful()) {
-//                return response.getBody();
-//            }
-//        } catch (Exception e) {
-//            log.warn(" Failed to get user info for {}: {}", userId, e.getMessage());
-//        }
-//        return null;
-//    }
+    // Get or create conversation between two users
+    private String getOrCreateConversation(String senderId, String receiverId) {
+        List<Conversation> conversations = conversationRepository.findByParticipants(senderId, receiverId);
 
+        if (!conversations.isEmpty()) {
+            return conversations.get(0).getId();
+        }
+
+        Conversation newConversation = Conversation.builder()
+                .participants(List.of(senderId, receiverId))
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .unreadCount(0)
+                .archived(false)
+                .muted(false)
+                .build();
+
+        return conversationRepository.save(newConversation).getId();
+    }
+
+    // Update conversation with last message details
+    private void updateConversation(String conversationId, String content) {
+        conversationRepository.findById(conversationId).ifPresent(conversation -> {
+            conversation.setLastMessageContent(content);
+            conversation.setLastMessageTime(LocalDateTime.now());
+            conversation.setUpdatedAt(LocalDateTime.now());
+
+            // Un-delete for everyone since a new message arrived
+            if (conversation.getDeletedBy() != null) {
+                conversation.getDeletedBy().clear();
+            }
+
+            conversationRepository.save(conversation);
+        });
+    }
 
     private MessageDTO convertToDTO(Message message) {
         return MessageDTO.builder()
@@ -272,6 +255,5 @@ public class MessageService {
                 .fileName(message.getFileName())
                 .build();
     }
-
 
 }

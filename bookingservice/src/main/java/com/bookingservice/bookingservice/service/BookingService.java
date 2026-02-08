@@ -20,6 +20,9 @@ import org.apache.kafka.common.errors.UnsupportedByAuthenticationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -47,8 +50,11 @@ public class BookingService {
 
     // ========== STUDENT METHODS ==========
 
-
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "studentBookings", key = "#userId"),
+            @CacheEvict(value = "providerBookings", key = "#result.providerId")
+    })
     public BookingResponse createBooking(UUID userId, BookingCreateRequest request) {
         log.info("Creating booking for user {} with skill {}", userId, request.getSkillId());
 
@@ -70,12 +76,12 @@ public class BookingService {
             throw new ValidationException("Provider not found: " + providerId);
         }
 
-        // 4.  Validate cannot book own skill
+        // 4. Validate cannot book own skill
         if (userId.equals(providerId)) {
             throw new ValidationException("Cannot book your own skill");
         }
 
-        // 5.  Validate time
+        // 5. Validate time
         if (request.getEndTime().isBefore(request.getStartTime())) {
             throw new ValidationException("End time must be after start time");
         }
@@ -113,31 +119,37 @@ public class BookingService {
         saveHistory(saved.getId(), null, Status.PENDING, "Booking created by student");
         publishBookingCreated(saved);
 
-        return Mapper.toResponse(saved);
+        return enrichSingleBooking(saved);
     }
 
-
+    @Cacheable(value = "studentBookings", key = "#userId")
     public List<BookingResponse> getBookingsByUser(UUID userId) {
+
+        Map<UUID, Map<String, Object>> userCache = new HashMap<>();
+        Map<UUID, ExternalServiceClient.SkillDetails> skillCache = new HashMap<>();
         log.info("Fetching bookings for student: {}", userId);
         return bookingRepository.findByUserId(userId).stream()
-                .map(Mapper::toResponse)
+                .map(b -> enrichBooking(b, userCache, skillCache))
                 .collect(Collectors.toList());
     }
 
-
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "studentBookings", key = "#userId"),
+            @CacheEvict(value = "providerBookings", key = "#result.providerId")
+    })
     public BookingResponse cancelBookingAsStudent(UUID bookingId, UUID userId) {
         log.info("Student {} cancelling booking {}", userId, bookingId);
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException("Booking not found: " + bookingId));
 
-        //  Verify ownership
+        // Verify ownership
         if (!booking.getUserId().equals(userId)) {
             throw new UnsupportedByAuthenticationException("You can only cancel your own bookings");
         }
 
-        //  Validate status
+        // Validate status
         if (booking.getStatus() == Status.COMPLETED || booking.getStatus() == Status.CANCELLED) {
             throw new ValidationException("Cannot cancel completed or already cancelled booking");
         }
@@ -150,28 +162,35 @@ public class BookingService {
         publishStatusChanged(booking, oldStatus, Status.CANCELLED, "Cancelled by student");
 
         log.info(" Booking {} cancelled by student", bookingId);
-        return Mapper.toResponse(booking);
+        return enrichSingleBooking(booking);
     }
 
     // ========== TEACHER METHODS ==========
 
-
+    @Cacheable(value = "providerBookings", key = "#providerId")
     public List<BookingResponse> getBookingsByProvider(UUID providerId) {
-        log.info("Fetching bookings for provider: {}", providerId);
-        return bookingRepository.findByProviderId(providerId).stream()
-                .map(Mapper::toResponse)
+
+        Map<UUID, Map<String, Object>> userCache = new HashMap<>();
+        Map<UUID, ExternalServiceClient.SkillDetails> skillCache = new HashMap<>();
+
+        return bookingRepository.findByProviderId(providerId)
+                .stream()
+                .map(b -> enrichBooking(b, userCache, skillCache))
                 .collect(Collectors.toList());
     }
 
-
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "providerBookings", key = "#teacherId"),
+            @CacheEvict(value = "studentBookings", key = "#result.userId")
+    })
     public BookingResponse acceptBooking(UUID bookingId, UUID teacherId) {
         log.info("Teacher {} accepting booking {}", teacherId, bookingId);
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException("Booking not found: " + bookingId));
 
-        //  Verify ownership
+        // Verify ownership
         if (!booking.getProviderId().equals(teacherId)) {
             throw new UnsupportedByAuthenticationException("Only the skill provider can accept this booking");
         }
@@ -189,11 +208,14 @@ public class BookingService {
         publishStatusChanged(booking, oldStatus, Status.CONFIRMED, "Accepted by teacher");
 
         log.info(" Booking {} accepted by teacher", bookingId);
-        return Mapper.toResponse(booking);
+        return enrichSingleBooking(booking);
     }
 
-
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "providerBookings", key = "#teacherId"),
+            @CacheEvict(value = "studentBookings", key = "#result.userId")
+    })
     public BookingResponse rejectBooking(UUID bookingId, UUID teacherId, String reason) {
         log.info("Teacher {} rejecting booking {}", teacherId, bookingId);
 
@@ -217,11 +239,14 @@ public class BookingService {
         publishStatusChanged(booking, oldStatus, Status.REJECTED, metadata);
 
         log.info(" Booking {} rejected by teacher", bookingId);
-        return Mapper.toResponse(booking);
+        return enrichSingleBooking(booking);
     }
 
-
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "providerBookings", key = "#teacherId"),
+            @CacheEvict(value = "studentBookings", key = "#result.userId")
+    })
     public BookingResponse completeBooking(UUID bookingId, UUID teacherId) {
         log.info("Teacher {} completing booking {}", teacherId, bookingId);
 
@@ -244,11 +269,14 @@ public class BookingService {
         publishStatusChanged(booking, oldStatus, Status.COMPLETED, "Completed by teacher");
 
         log.info(" Booking {} completed by teacher", bookingId);
-        return Mapper.toResponse(booking);
+        return enrichSingleBooking(booking);
     }
 
-
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "providerBookings", key = "#teacherId"),
+            @CacheEvict(value = "studentBookings", key = "#result.userId")
+    })
     public BookingResponse cancelBookingAsTeacher(UUID bookingId, UUID teacherId, String reason) {
         log.info("Teacher {} cancelling booking {}", teacherId, bookingId);
 
@@ -272,11 +300,10 @@ public class BookingService {
         publishStatusChanged(booking, oldStatus, Status.CANCELLED, metadata);
 
         log.info(" Booking {} cancelled by teacher", bookingId);
-        return Mapper.toResponse(booking);
+        return enrichSingleBooking(booking);
     }
 
     // ========== COMMON METHODS ==========
-
 
     public BookingResponse getBooking(UUID id, UUID requesterId) {
         Booking booking = bookingRepository.findById(id)
@@ -288,11 +315,10 @@ public class BookingService {
             throw new UnsupportedByAuthenticationException("You don't have access to this booking");
         }
 
-        return Mapper.toResponse(booking);
+        return enrichSingleBooking(booking);
     }
 
     // ========== ADMIN METHODS ==========
-
 
     public List<BookingResponse> getAllBookings() {
         log.info("Admin fetching all bookings");
@@ -300,7 +326,6 @@ public class BookingService {
                 .map(Mapper::toResponse)
                 .collect(Collectors.toList());
     }
-
 
     public Map<String, Object> getBookingStats() {
         log.info("Admin calculating booking statistics");
@@ -380,7 +405,6 @@ public class BookingService {
                     .endTime(booking.getEndTime())
                     .sessionTime(formatSessionTime(booking.getStartTime(), booking.getEndTime()))
 
-
                     // Price and status
                     .totalPrice(booking.getTotalPrice())
                     .status(booking.getStatus().name())
@@ -395,8 +419,6 @@ public class BookingService {
             log.error(" Failed to publish BookingCreatedEvent for booking {}", booking.getId(), e);
         }
     }
-
-
 
     private void publishStatusChanged(Booking booking, Status oldStatus, Status newStatus, String reason) {
         try {
@@ -443,16 +465,74 @@ public class BookingService {
             log.error(" Failed to publish BookingStatusChangedEvent for booking {}", booking.getId(), e);
         }
     }
+
     private String formatSessionTime(OffsetDateTime startTime, OffsetDateTime endTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm a");
         return startTime.format(formatter) + " - " + endTime.format(formatter);
     }
 
+    private BookingResponse enrichSingleBooking(Booking booking) {
+        return enrichBooking(booking, new HashMap<>(), new HashMap<>());
+    }
+
+    private BookingResponse enrichBooking(
+            Booking booking,
+            Map<UUID, Map<String, Object>> userCache,
+            Map<UUID, ExternalServiceClient.SkillDetails> skillCache) {
+
+        BookingResponse response = Mapper.toResponse(booking);
+
+        // ---------- SKILL ----------
+        try {
+            ExternalServiceClient.SkillDetails skill = skillCache.computeIfAbsent(
+                    booking.getSkillId(),
+                    id -> {
+                        try {
+                            return externalClient.getSkill(id);
+                        } catch (Exception e) {
+                            return null;
+                        }
+                    });
+            response.setSkillTitle(skill != null ? skill.getName() : "Unknown Skill");
+        } catch (Exception e) {
+            response.setSkillTitle("Unknown Skill");
+        }
+
+        // ---------- STUDENT ----------
+        try {
+            Map<String, Object> student = userCache.computeIfAbsent(
+                    booking.getUserId(),
+                    id -> {
+                        try {
+                            return externalClient.getUserDetails(id);
+                        } catch (Exception e) {
+                            return null;
+                        }
+                    });
+            response.setUserName(
+                    student != null ? (String) student.getOrDefault("name", "Unknown") : "Unknown");
+        } catch (Exception e) {
+            response.setUserName("Unknown");
+        }
+
+        // ---------- TEACHER ----------
+        try {
+            Map<String, Object> provider = userCache.computeIfAbsent(
+                    booking.getProviderId(),
+                    id -> {
+                        try {
+                            return externalClient.getUserDetails(id);
+                        } catch (Exception e) {
+                            return null;
+                        }
+                    });
+            response.setProviderName(
+                    provider != null ? (String) provider.getOrDefault("name", "Unknown") : "Unknown");
+        } catch (Exception e) {
+            response.setProviderName("Unknown");
+        }
+
+        return response;
+    }
+
 }
-
-
-
-
-
-
-

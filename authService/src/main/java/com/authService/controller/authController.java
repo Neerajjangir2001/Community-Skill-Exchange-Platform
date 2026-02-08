@@ -1,5 +1,9 @@
 package com.authService.controller;
 
+import com.authService.DTO.ChangePasswordRequest;
+import com.authService.DTO.ForgotPasswordRequest;
+import com.authService.DTO.ResetPasswordRequest;
+import com.authService.DTO.UserResponse;
 import com.authService.DTO.jwt.RefreshRequest;
 import com.authService.DTO.login.LoginRequest;
 import com.authService.DTO.signup.SignupRequest;
@@ -19,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -33,19 +38,16 @@ public class authController {
 
     private final JwtUtil jwtUtil;
 
-
     @PostMapping("signup")
-    public ResponseEntity<String> userRegister(@Valid @RequestBody SignupRequest signupRequest){
-           authService.signup(signupRequest);
-        return  ResponseEntity.ok("User Created Successfully");
+    public ResponseEntity<String> userRegister(@Valid @RequestBody SignupRequest signupRequest) {
+        authService.signup(signupRequest);
+        return ResponseEntity.ok("User Created Successfully");
     }
 
     @PostMapping("login")
-    public ResponseEntity<?> userLogin(@Valid @RequestBody LoginRequest loginRequest){
+    public ResponseEntity<?> userLogin(@Valid @RequestBody LoginRequest loginRequest) {
         return ResponseEntity.ok(authService.login(loginRequest));
     }
-
-
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@RequestBody RefreshRequest req) {
@@ -53,11 +55,10 @@ public class authController {
         return ResponseEntity.ok(resp);
     }
 
-
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestBody RefreshRequest req,
-                                    HttpServletRequest request,
-                                    HttpServletResponse response) {
+            HttpServletRequest request,
+            HttpServletResponse response) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         authService.logout(req.getRefreshToken());
@@ -74,7 +75,6 @@ public class authController {
         return ResponseEntity.ok(exists);
     }
 
-
     @GetMapping("/validate")
     public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String authHeader) {
         try {
@@ -86,8 +86,7 @@ public class authController {
                         "valid", true,
                         "userId", claims.getSubject(),
                         "email", claims.get("email"),
-                        "roles", claims.get("roles")
-                ));
+                        "roles", claims.get("roles")));
             }
             return ResponseEntity.status(401).body(Map.of("valid", false));
         } catch (Exception e) {
@@ -95,13 +94,41 @@ public class authController {
         }
     }
 
-
-
     @GetMapping("/users/{userId}/email")
     public ResponseEntity<String> getUserEmail(@PathVariable UUID userId) {
 
         String email = authService.getEmailByUserId(userId);
         return ResponseEntity.ok(email);
+    }
+
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
+        authService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        return ResponseEntity.ok(authService.getAllUsers());
+    }
+
+    @PostMapping("/change-password/{userId}")
+    public ResponseEntity<String> changePassword(@PathVariable UUID userId,
+            @RequestBody ChangePasswordRequest request) {
+        authService.changePassword(userId, request);
+        return ResponseEntity.ok("Password changed successfully");
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return ResponseEntity.ok("Password reset link sent to your email");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok("Password has been reset successfully");
     }
 
 }

@@ -24,7 +24,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     @Value("${app.jwt.secret}")
     private String secretKey;
 
-    // ✅ ADDED: ObjectMapper for safe type conversion
+    // ADDED: ObjectMapper for safe type conversion
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public AuthenticationFilter() {
@@ -39,6 +39,13 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
+
+            // Bypass auth for WebSocket handshake - Check for any path containing /chat/ws
+            // This covers /api/chat/ws, /chat/ws, etc.
+            if (exchange.getRequest().getURI().getPath().contains("/chat/ws")) {
+                return chain.filter(exchange);
+            }
+
             // Check if Authorization header exists
             if (!exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
                 return onError(exchange, "Missing authorization header", HttpStatus.UNAUTHORIZED);
@@ -63,7 +70,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                 String userId = claims.getSubject();
                 String email = claims.get("email", String.class);
 
-                // ✅ FIX: Handle roles as List and convert to comma-separated String
+                // FIX: Handle roles as List and convert to comma-separated String
                 String rolesString = "";
                 Object rolesObj = claims.get("roles");
 
@@ -72,8 +79,8 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                         // Try to convert to List<String>
                         List<String> rolesList = objectMapper.convertValue(
                                 rolesObj,
-                                new TypeReference<List<String>>() {}
-                        );
+                                new TypeReference<List<String>>() {
+                                });
                         rolesString = String.join(",", rolesList);
                     } catch (Exception e) {
                         // If it's already a String, use it directly
@@ -83,7 +90,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                     }
                 }
 
-                // ✅ FIXED: Properly mutate the request and forward it
+                // FIXED: Properly mutate the request and forward it
                 String finalRolesString = rolesString;
                 ServerWebExchange mutatedExchange = exchange.mutate()
                         .request(builder -> builder

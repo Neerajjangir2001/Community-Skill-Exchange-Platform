@@ -43,4 +43,6 @@ public class Conversation {
     private boolean archived;
 
     private boolean muted;
+
+    private List<String> deletedBy; // Users who have deleted this conversation
 }

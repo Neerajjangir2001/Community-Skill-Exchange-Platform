@@ -26,15 +26,16 @@ public class SkillSearchController {
 
     @GetMapping("/skillSearch")
     public ResponseEntity<Map<String, Object>> search(@RequestParam(required = false) String q,
-                                                      @RequestParam(required = false) List<String> tags,
-                                                      @RequestParam(required = false) String level,
-                                                      @RequestParam(required = false) Double minPrice,
-                                                      @RequestParam(required = false) Double maxPrice,
-                                                      @RequestParam(defaultValue = "0") int page,
-                                                      @RequestParam(defaultValue = "10") int size,
-                                                      @RequestParam(defaultValue = "createdAt") String sort,
-                                                      @RequestParam(defaultValue = "desc") String direction) {
-        List<SkillResponse> results = searchService.search(q, tags, level, minPrice, maxPrice, page, size, sort, direction);
+            @RequestParam(required = false) List<String> tags,
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sort,
+            @RequestParam(defaultValue = "desc") String direction) {
+        List<SkillResponse> results = searchService.search(q, tags, level, minPrice, maxPrice, page, size, sort,
+                direction);
 
         Map<String, Object> response = new HashMap<>();
         response.put("results", results);
@@ -44,8 +45,6 @@ public class SkillSearchController {
 
         return ResponseEntity.ok(response);
     }
-
-
 
     @GetMapping("/getAllSkills")
     public ResponseEntity<List<SkillResponse>> getAllSkills(
@@ -72,6 +71,5 @@ public class SkillSearchController {
         log.info("GET /api/search/search?query={}", query);
         return ResponseEntity.ok(skillService.searchSkills(query));
     }
-
 
 }

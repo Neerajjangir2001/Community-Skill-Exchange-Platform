@@ -75,8 +75,17 @@ spring:
               uri: lb://NOTIFICATION-SERVICE
               predicates:
                 - Path=/api/notifications/**
+              filters:
+                - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
 
-
+            - id: chat-service-ws
+              uri: lb://CHAT-SERVICE
+              order: -5
+              predicates:
+                - Path=/api/chat/ws/**
+              filters:
+                - RewritePath=/api/chat/ws/(?<segment>.*), /ws/${segment}
+                - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
 
             - id: chat-service
               uri: lb://CHAT-SERVICE
@@ -84,31 +93,29 @@ spring:
                 - Path=/api/chat/**,/api/messages/**
               filters:
                 - AuthenticationFilter
+                - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
 
 
 
-
-
-
-
-
-
-
+            - id: review-service
+              uri: lb://REVIEW-SERVICE
+              predicates:
+                  - Path=/api/reviews/**
+              filters:
+                  - AuthenticationFilter
 
 
 eureka:
   client:
     service-url:
       defaultZone : http://localhost:8761/eureka/
-
-
-      instance:
-        prefer-ip-address: true          #  Use IP instead of hostname
-        hostname: localhost
+  instance:
+    prefer-ip-address: true          #  Use IP instead of hostname
+    hostname: localhost
 
 app:
   jwt:
-    secret: "bXktc3VwZXItc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tMjAyNA=="
+    secret: ${JWT_SECRET}
     access-token-expiration-ms: 900000
     refresh-token-expiration-ms: 2592000000
 

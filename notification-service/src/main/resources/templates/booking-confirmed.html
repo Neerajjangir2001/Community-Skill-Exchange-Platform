@@ -1,71 +1,92 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking Confirmed</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            background: #4caf50;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            border-radius: 5px 5px 0 0;
-        }
-        .content {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 0 0 5px 5px;
-        }
-        .booking-details {
-            background: white;
-            padding: 15px;
-            margin: 15px 0;
-            border-left: 4px solid #4caf50;
-        }
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            font-size: 12px;
-        }
-    </style>
 </head>
-<body>
-<div class="header">
-    <h1>🎉 Booking Confirmed!</h1>
-</div>
 
-<div class="content">
-    <p>Hi <strong th:text="${studentName}">Student</strong>,</p>
+<body
+    style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: 'Helvetica', 'Arial', sans-serif; -webkit-font-smoothing: antialiased;">
+    <div
+        style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+        <!-- Header -->
+        <div
+            style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 40px 20px; text-align: center;">
+            <div
+                style="width: 64px; height: 64px; background-color: rgba(255, 255, 255, 0.2); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                <span style="font-size: 32px;">🎉</span>
+            </div>
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700;">Booking Confirmed!</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 8px 0 0; font-size: 14px;">Your session has been
+                successfully scheduled</p>
+        </div>
 
-    <p>Great news! Your booking has been confirmed by <strong th:text="${teacherName}">Teacher</strong>!</p>
+        <!-- Content -->
+        <div style="padding: 40px 32px;">
+            <p style="color: #374151; font-size: 16px; margin: 0 0 24px; line-height: 1.6;">Hi <strong
+                    th:text="${studentName}" style="color: #111827;">Student</strong>,</p>
+            <p style="color: #4b5563; font-size: 16px; margin: 0 0 32px; line-height: 1.6;">Great news! <strong><span
+                        th:text="${teacherName}" style="color: #6366f1;">Teacher</span></strong> has accepted your
+                booking request. You're all set for your upcoming session.</p>
 
-    <div class="booking-details">
-        <h3>Booking Details:</h3>
-        <p><strong>Skill:</strong> <span th:text="${skillName}">Skill</span></p>
-        <p><strong>Session Time:</strong> <span th:text="${sessionTime}">Time</span></p>
-        <p><strong>Price:</strong> ₹<span th:text="${totalPrice}">0.00</span></p>
-        <p><strong>Booking ID:</strong> <span th:text="${bookingId}">ID</span></p>
+            <!-- Booking Card -->
+            <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px;">
+                <h3
+                    style="color: #111827; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 16px;">
+                    Session Details</h3>
+
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 8px 0; color: #6b7280; font-size: 14px; width: 120px;">Skill</td>
+                        <td style="padding: 8px 0; color: #111827; font-size: 14px; font-weight: 600;"
+                            th:text="${skillName}">Skill Name</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Date & Time</td>
+                        <td style="padding: 8px 0; color: #111827; font-size: 14px; font-weight: 600;"
+                            th:text="${sessionTime}">Date & Time</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Price</td>
+                        <td style="padding: 8px 0; color: #10b981; font-size: 14px; font-weight: 700;">₹<span
+                                th:text="${totalPrice}">0.00</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Booking ID</td>
+                        <td style="padding: 8px 0; color: #6b7280; font-size: 12px; font-family: monospace;"
+                            th:text="${bookingId}">#ID</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div
+                style="margin-top: 32px; background-color: #ecfdf5; border-radius: 12px; padding: 20px; border-left: 4px solid #10b981;">
+                <h4 style="color: #065f46; margin: 0 0 8px; font-size: 14px; font-weight: 700;">Next Steps</h4>
+                <ul style="margin: 0; padding-left: 20px; color: #064e3b; font-size: 14px; line-height: 1.6;">
+                    <li>Join the session at the scheduled time</li>
+                    <li>Prepare any questions you want to ask</li>
+                    <li>Enjoy your learning journey!</li>
+                </ul>
+            </div>
+
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="http://localhost:3000/bookings"
+                    style="display: inline-block; background-color: #6366f1; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 32px; border-radius: 9999px; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);">View
+                    Booking</a>
+                <p style="margin-top: 16px; font-size: 12px; color: #9ca3af;">Link not working? Visit your dashboard >
+                    My Bookings</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">© 2025 Skill Exchange. All rights reserved.</p>
+            <p style="color: #d1d5db; font-size: 11px; margin: 8px 0 0;">This is an automated email, please do not
+                reply.</p>
+        </div>
     </div>
-
-    <p><strong>Next Steps:</strong></p>
-    <ul>
-        <li>Join the session at the scheduled time</li>
-        <li>Prepare any questions you want to ask</li>
-        <li>Have fun learning!</li>
-    </ul>
-</div>
-
-<div class="footer">
-    <p>© 2025 Skill Exchange Platform</p>
-</div>
 </body>
+
 </html>

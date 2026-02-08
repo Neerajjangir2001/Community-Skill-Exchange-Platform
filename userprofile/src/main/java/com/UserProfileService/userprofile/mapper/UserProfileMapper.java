@@ -19,7 +19,7 @@ public class UserProfileMapper {
                 e.getId(),
                 e.getUserId(),
                 e.getDisplayName(),
-                email,                  // ✅ Email from Auth Service
+                email,                  //  Email from Auth Service
                 e.getBio(),
                 e.getCity(),
                 e.getAvatarUrl(),

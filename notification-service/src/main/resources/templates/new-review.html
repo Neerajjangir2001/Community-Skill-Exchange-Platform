@@ -1,32 +1,64 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Review</title>
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-<div style="background-color: #FF9800; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h2 style="color: white; margin: 0;">⭐ You Received a New Review!</h2>
-</div>
 
-<div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
-    <p>Dear <strong th:text="${teacherName}"></strong>,</p>
+<body
+    style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: 'Helvetica', 'Arial', sans-serif; -webkit-font-smoothing: antialiased;">
+    <div
+        style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+        <!-- Header -->
+        <div style="background-color: #f59e0b; padding: 40px 20px; text-align: center;">
+            <div
+                style="width: 64px; height: 64px; background-color: rgba(255, 255, 255, 0.2); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                <span style="font-size: 32px;">⭐</span>
+            </div>
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700;">New Review Received!</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 8px 0 0; font-size: 14px;">Someone shared their feedback
+            </p>
+        </div>
 
-    <p><strong th:text="${reviewerName}"></strong> left you a review:</p>
+        <!-- Content -->
+        <div style="padding: 40px 32px;">
+            <p style="color: #374151; font-size: 16px; margin: 0 0 24px; line-height: 1.6;">Hi <strong
+                    th:text="${teacherName}" style="color: #111827;">Teacher</strong>,</p>
+            <p style="color: #4b5563; font-size: 16px; margin: 0 0 32px; line-height: 1.6;"><strong
+                    th:text="${reviewerName}" style="color: #f59e0b;">Reviewer</strong> just left you a new review.</p>
 
-    <div style="background-color: white; padding: 20px; margin: 20px 0; border-left: 4px solid #FF9800; border-radius: 5px;">
-        <p><strong>Rating:</strong> <span th:text="${rating}"></span> ⭐</p>
-        <p><strong>Comment:</strong></p>
-        <p style="font-style: italic;" th:text="${comment}"></p>
+            <!-- Review Card -->
+            <div
+                style="background-color: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px; padding: 24px; position: relative;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                    <span style="font-weight: 700; color: #92400e; font-size: 14px;">RATING</span>
+                    <div
+                        style="background-color: #ffffff; padding: 4px 12px; border-radius: 99px; border: 1px solid #fcd34d; font-weight: 700; color: #f59e0b; font-size: 14px;">
+                        <span th:text="${rating}">5</span> / 5
+                    </div>
+                </div>
+
+                <p style="color: #78350f; font-size: 15px; margin: 0; line-height: 1.6; font-style: italic;"
+                    th:text="${comment}">"Great session!"</p>
+            </div>
+
+            <p style="text-align: center; color: #6b7280; font-size: 14px; margin-top: 32px;">Keep up the fantastic
+                work!</p>
+
+            <div style="text-align: center; margin-top: 24px;">
+                <a href="http://localhost:3000/profile"
+                    style="display: inline-block; background-color: #f59e0b; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 32px; border-radius: 9999px; box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.4);">View
+                    Profile</a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">© 2025 Skill Exchange. All rights reserved.</p>
+        </div>
     </div>
-
-    <p>Keep up the great work!</p>
-
-    <div style="text-align: center; margin: 30px 0;">
-        <a href="http://localhost:3000/profile" style="background-color: #FF9800; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">View Your Profile</a>
-    </div>
-
-    <p style="margin-top: 30px;">Best regards,<br/><strong>Skill Exchange Team</strong></p>
-</div>
 </body>
+
 </html>

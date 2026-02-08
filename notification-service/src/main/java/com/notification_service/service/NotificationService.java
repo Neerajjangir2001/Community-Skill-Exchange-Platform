@@ -21,13 +21,11 @@ public class NotificationService {
     private final OneSignalPushService oneSignalPushService;
     private final NotificationLogService notificationLogService;
 
-
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
 
     // ========== BOOKING NOTIFICATIONS ==========
 
-
-     //Send booking request notification to provider
+    // Send booking request notification to provider
     public void sendBookingRequestNotification(BookingCreatedEvent event) {
 
         log.info(" BOOKING REQUEST NOTIFICATION");
@@ -46,10 +44,12 @@ public class NotificationService {
             sendBookingEmail(event, "booking-request", " New Booking Request from " + event.getUserName());
 
             // 2. Send WebSocket Notification
-            sendWebSocketNotification(String.valueOf(providerId), title, message, "BOOKING", "/bookings/" + event.getBookingId());
+            sendWebSocketNotification(String.valueOf(providerId), title, message, "BOOKING",
+                    "/bookings/" + event.getBookingId());
 
             // 3. Send Push Notification
-            sendPushNotification(String.valueOf(providerId), title, message, "BOOKING", "/bookings/" + event.getBookingId(), event.getBookingId());
+            sendPushNotification(String.valueOf(providerId), title, message, "BOOKING",
+                    "/bookings/" + event.getBookingId(), event.getBookingId());
 
             // 4. Notify Student (Confirmation)
             sendBookingCreatedConfirmationToUser(event);
@@ -60,16 +60,14 @@ public class NotificationService {
             log.error(" Error sending booking request notification: {}", e.getMessage(), e);
         }
 
-
     }
 
-
-     // Send booking confirmed notification to student
+    // Send booking confirmed notification to student
 
     public void sendBookingConfirmedNotification(BookingCreatedEvent event) {
         log.info(" Sending booking confirmed notification");
 
-        String  userId = event.getUserId();
+        String userId = event.getUserId();
         String title = "Booking Confirmed!";
         String message = event.getProviderName() + " confirmed your " + event.getSkillName() + " session";
 
@@ -80,13 +78,13 @@ public class NotificationService {
         sendWebSocketNotification(userId, title, message, "BOOKING", "/bookings/" + event.getBookingId());
 
         // Push
-        sendPushNotification(userId, title, message, "BOOKING", "/bookings/" + event.getBookingId(), event.getBookingId());
+        sendPushNotification(userId, title, message, "BOOKING", "/bookings/" + event.getBookingId(),
+                event.getBookingId());
 
         log.info(" Booking confirmed notification sent");
     }
 
-
-     // Send booking rejected notification to student
+    // Send booking rejected notification to student
 
     public void sendBookingRejectedNotification(BookingCreatedEvent event) {
         log.info(" Sending booking rejected notification");
@@ -102,15 +100,15 @@ public class NotificationService {
         sendWebSocketNotification(userId, title, message, "BOOKING", "/bookings/" + event.getBookingId());
 
         // Push
-        sendPushNotification(userId, title, message, "BOOKING", "/bookings/" + event.getBookingId(), event.getBookingId());
+        sendPushNotification(userId, title, message, "BOOKING", "/bookings/" + event.getBookingId(),
+                event.getBookingId());
 
         log.info(" Booking rejected notification sent");
     }
 
     // ========== REVIEW NOTIFICATIONS ==========
 
-
-     // Send new review notification
+    // Send new review notification
 
     public void sendNewReviewNotification(ReviewCreatedEvent event) {
         log.info(" Sending new review notification");
@@ -129,22 +127,22 @@ public class NotificationService {
                 event.getTeacherEmail(),
                 " You received a new " + event.getRating() + "-star review!",
                 "new-review",
-                context
-        );
+                context);
 
         // WebSocket
-        sendWebSocketNotification(String.valueOf(event.getTeacherId()), title, message, "REVIEW", "/reviews/" + event.getReviewId());
+        sendWebSocketNotification(String.valueOf(event.getTeacherId()), title, message, "REVIEW",
+                "/reviews/" + event.getReviewId());
 
         // Push
-        sendPushNotification(String.valueOf(event.getTeacherId()), title, message, "REVIEW", "/reviews/" + event.getReviewId(), event.getReviewId().toString());
+        sendPushNotification(String.valueOf(event.getTeacherId()), title, message, "REVIEW",
+                "/reviews/" + event.getReviewId(), event.getReviewId().toString());
 
         log.info(" Review notification sent");
     }
 
     // ========== MESSAGE NOTIFICATIONS ==========
 
-
-     //Send new message notification
+    // Send new message notification
 
     public void sendNewMessageNotification(MessageReceivedEvent event) {
 
@@ -164,7 +162,8 @@ public class NotificationService {
             emailService.sendEmail(event.getReceiverEmail(), " " + title, "new-message", context);
 
             // 2. WebSocket
-            sendWebSocketNotification(String.valueOf(event.getReceiverId()), title, message, "MESSAGE", "/chat/" + event.getSenderId());
+            sendWebSocketNotification(String.valueOf(event.getReceiverId()), title, message, "MESSAGE",
+                    "/chat/" + event.getSenderId());
 
             // 3. Push Notification
             Map<String, String> data = new HashMap<>();
@@ -183,8 +182,7 @@ public class NotificationService {
                     "MESSAGE",
                     title,
                     message,
-                    "message:" + event.getMessageId()
-            );
+                    "message:" + event.getMessageId());
 
             log.info(" Message notification completed");
 
@@ -192,13 +190,11 @@ public class NotificationService {
             log.error(" Error sending message notification: {}", e.getMessage(), e);
         }
 
-
     }
 
     // ========== USER NOTIFICATIONS ==========
 
-
-     //Send welcome email to new user
+    // Send welcome email to new user
 
     public void sendWelcomeEmail(UserRegisteredEvent event) {
         log.info(" Sending welcome email to: {}", event.getEmail());
@@ -215,15 +211,15 @@ public class NotificationService {
         sendWebSocketNotification(String.valueOf(event.getUserId()), title, message, "USER", "/profile");
 
         // Push
-        sendPushNotification(String.valueOf(event.getUserId()), title, message, "USER", "/profile", event.getUserId().toString());
+        sendPushNotification(String.valueOf(event.getUserId()), title, message, "USER", "/profile",
+                event.getUserId().toString());
 
         log.info(" Welcome email sent");
     }
 
     // ========== SKILL MATCH NOTIFICATIONS ==========
 
-
-     // Send skill match notification to both learner and teacher
+    // Send skill match notification to both learner and teacher
 
     public void sendSkillMatchNotification(SkillMatchFoundEvent event) {
         log.info(" Sending skill match notifications");
@@ -237,9 +233,12 @@ public class NotificationService {
         learnerContext.setVariable("teacherName", event.getTeacherName());
         learnerContext.setVariable("skillName", event.getSkillName());
 
-        emailService.sendEmail(event.getLearnerEmail(), " Great News! Someone can teach you " + event.getSkillName(), "skill-match-learner", learnerContext);
-        sendWebSocketNotification(String.valueOf(event.getLearnerId()), learnerTitle, learnerMessage, "SKILL_MATCH", "/matches/" + event.getMatchId());
-        sendPushNotification(String.valueOf(event.getLearnerId()), learnerTitle, learnerMessage, "SKILL_MATCH", "/matches/" + event.getMatchId(), event.getMatchId().toString());
+        emailService.sendEmail(event.getLearnerEmail(), " Great News! Someone can teach you " + event.getSkillName(),
+                "skill-match-learner", learnerContext);
+        sendWebSocketNotification(String.valueOf(event.getLearnerId()), learnerTitle, learnerMessage, "SKILL_MATCH",
+                "/matches/" + event.getMatchId());
+        sendPushNotification(String.valueOf(event.getLearnerId()), learnerTitle, learnerMessage, "SKILL_MATCH",
+                "/matches/" + event.getMatchId(), event.getMatchId().toString());
 
         // Notify Teacher
         String teacherTitle = "New Learning Request";
@@ -250,17 +249,38 @@ public class NotificationService {
         teacherContext.setVariable("learnerName", event.getLearnerName());
         teacherContext.setVariable("skillName", event.getSkillName());
 
-        emailService.sendEmail(event.getTeacherEmail(), " Someone wants to learn " + event.getSkillName() + " from you!", "skill-match-teacher", teacherContext);
-        sendWebSocketNotification(String.valueOf(event.getTeacherId()), teacherTitle, teacherMessage, "SKILL_MATCH", "/matches/" + event.getMatchId());
-        sendPushNotification(String.valueOf(event.getTeacherId()), teacherTitle, teacherMessage, "SKILL_MATCH", "/matches/" + event.getMatchId(), event.getMatchId().toString());
+        emailService.sendEmail(event.getTeacherEmail(),
+                " Someone wants to learn " + event.getSkillName() + " from you!", "skill-match-teacher",
+                teacherContext);
+        sendWebSocketNotification(String.valueOf(event.getTeacherId()), teacherTitle, teacherMessage, "SKILL_MATCH",
+                "/matches/" + event.getMatchId());
+        sendPushNotification(String.valueOf(event.getTeacherId()), teacherTitle, teacherMessage, "SKILL_MATCH",
+                "/matches/" + event.getMatchId(), event.getMatchId().toString());
 
         log.info(" Skill match notifications sent");
     }
 
+    // ========== PASSWORD RESET NOTIFICATIONS ==========
+
+    public void sendPasswordResetEmail(com.notification_service.DTO.PasswordResetEvent event) {
+        log.info(" Sending password reset email to: {}", event.getEmail());
+
+        // For local dev, we assume frontend runs on 5173.
+        // In prod, this should be an env var or config property.
+        String resetLink = "http://localhost:5173/reset-password?token=" + event.getToken();
+
+        Context context = new Context();
+        context.setVariable("resetLink", resetLink);
+        // Fallback to "User" if null
+        context.setVariable("displayName", event.getDisplayName() != null ? event.getDisplayName() : "User");
+
+        emailService.sendEmail(event.getEmail(), "Reset Your Password", "password-reset", context);
+        log.info(" Password reset email sent");
+    }
+
     // ========== PRIVATE HELPER METHODS ==========
 
-
-     // Send booking email (DRY principle)
+    // Send booking email (DRY principle)
 
     private void sendBookingEmail(BookingCreatedEvent event, String template, String subject) {
         Context context = new Context();
@@ -276,8 +296,7 @@ public class NotificationService {
         emailService.sendEmail(event.getProviderEmail(), subject, template, context);
     }
 
-
-     // Send booking confirmation to user
+    // Send booking confirmation to user
     private void sendBookingCreatedConfirmationToUser(BookingCreatedEvent event) {
         String userId = event.getUserId();
         String title = "Booking Request Sent";
@@ -292,13 +311,14 @@ public class NotificationService {
         context.setVariable("bookingId", event.getBookingId());
         context.setVariable("status", event.getStatus());
 
-        emailService.sendEmail(event.getUserEmail(), " Booking Request Submitted - " + event.getSkillName(), "booking-created-user", context);
+        emailService.sendEmail(event.getUserEmail(), " Booking Request Submitted - " + event.getSkillName(),
+                "booking-created-user", context);
         sendWebSocketNotification(userId, title, message, "BOOKING", "/bookings/" + event.getBookingId());
-        sendPushNotification(userId, title, message, "BOOKING", "/bookings/" + event.getBookingId(), event.getBookingId());
+        sendPushNotification(userId, title, message, "BOOKING", "/bookings/" + event.getBookingId(),
+                event.getBookingId());
     }
 
-
-     //Send WebSocket notification
+    // Send WebSocket notification
     private void sendWebSocketNotification(String userId, String title, String message, String type, String actionUrl) {
         try {
             PushNotification notification = PushNotification.builder()
@@ -318,10 +338,10 @@ public class NotificationService {
         }
     }
 
+    // Send push notification via OneSignal
 
-     // Send push notification via OneSignal
-
-    private void sendPushNotification(String userId, String title, String message, String type, String actionUrl, String referenceId) {
+    private void sendPushNotification(String userId, String title, String message, String type, String actionUrl,
+            String referenceId) {
         try {
             Map<String, String> data = new HashMap<>();
             data.put("type", type);
@@ -333,9 +353,8 @@ public class NotificationService {
                     userId,
                     title,
                     message,
-                    actionUrl,  // e.g., "/bookings/123" or "bookings/123"
-                    data
-            );
+                    actionUrl, // e.g., "/bookings/123" or "bookings/123"
+                    data);
 
             if (notificationId != null) {
                 log.info(" Push notification sent. ID: {}", notificationId);
@@ -346,10 +365,10 @@ public class NotificationService {
         }
     }
 
-
-     // Truncate message to specified length
+    // Truncate message to specified length
     private String truncateMessage(String message, int maxLength) {
-        if (message == null) return "";
+        if (message == null)
+            return "";
         return message.length() > maxLength ? message.substring(0, maxLength) + "..." : message;
     }
 }

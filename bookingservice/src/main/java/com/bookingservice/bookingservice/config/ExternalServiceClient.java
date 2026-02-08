@@ -31,9 +31,6 @@ public class ExternalServiceClient {
         }
     }
 
-
-
-
     public SkillDetails getSkill(UUID skillId) {
         try {
             return webClientBuilder
@@ -52,7 +49,6 @@ public class ExternalServiceClient {
         try {
             log.info(" Fetching user details for userId: {}", userId);
 
-            // Call the new endpoint: /api/users/{userId}
             Map<String, Object> response = webClientBuilder
                     .get()
                     .uri("http://USERPROFILE/api/users/{id}", userId)
@@ -80,7 +76,7 @@ public class ExternalServiceClient {
                 log.info(" Fetched user details: name={}, email={}", name, email);
                 return userDetails;
             } else {
-                log.warn("⚠ User Service returned null for userId: {}", userId);
+                log.warn(" User Service returned null for userId: {}", userId);
                 return getFallbackUserDetails(userId);
             }
 
@@ -103,7 +99,6 @@ public class ExternalServiceClient {
         return fallback;
     }
 
-
     @Getter
     @Setter
     @NoArgsConstructor
@@ -121,5 +116,3 @@ public class ExternalServiceClient {
         }
     }
 }
-
-

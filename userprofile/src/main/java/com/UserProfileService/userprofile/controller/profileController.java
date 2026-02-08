@@ -20,20 +20,17 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class profileController {
 
-
     private final ProfileService profileService;
     private final CloudinaryService cloudinaryService;
-
 
     @PostMapping
     public ResponseEntity<?> create(@RequestBody CreateProfileDto dto, Authentication authentication) {
 
         UUID userId = UUID.fromString(authentication.getName());
-              profileService.createProfile(dto, userId);
-        return  ResponseEntity.ok("Profile Created Successfully");
+        profileService.createProfile(dto, userId);
+        return ResponseEntity.ok("Profile Created Successfully");
 
     }
-
 
     @GetMapping("/userComeByUserId")
     public ResponseEntity<ProfileDto> getByUser(Authentication authentication) {
@@ -42,13 +39,14 @@ public class profileController {
         UUID uuid = UUID.fromString(String.valueOf(authenticatedUserId));
 
         ProfileDto dto = profileService.getByUserId(uuid);
-        if (dto == null) return ResponseEntity.notFound().build();
+        if (dto == null)
+            return ResponseEntity.notFound().build();
         return ResponseEntity.ok(dto);
 
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ProfileDto> update( @RequestBody UpdateProfileDto dto,  Authentication authentication) {
+    public ResponseEntity<ProfileDto> update(@RequestBody UpdateProfileDto dto, Authentication authentication) {
 
         String authenticatedUserId = authentication.getName();
         UUID user = UUID.fromString(String.valueOf(authenticatedUserId));
@@ -56,31 +54,25 @@ public class profileController {
         return ResponseEntity.ok(profileDto);
     }
 
-
-
     @PostMapping("/users/me/avatar")
     public ResponseEntity<Map<String, String>> upload(@RequestParam("file") MultipartFile file,
-                                                      Authentication authentication) {
+            Authentication authentication) {
         String authenticatedUserId = authentication.getName();
         UUID userId = UUID.fromString(authenticatedUserId);
 
         String url = cloudinaryService.uploadAvatar(userId, file);
-        profileService.updateAvatar(userId,url);
+        profileService.updateAvatar(userId, url);
 
         return ResponseEntity.ok(Map.of("avatarUrl", url));
     }
-
 
     @GetMapping("/search")
     public ResponseEntity<List<ProfileDto>> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String city,
-            @RequestParam(required = false) Boolean isProvider
-    ) {
+            @RequestParam(required = false) Boolean isProvider) {
         return ResponseEntity.ok(profileService.searchProfiles(keyword, city, isProvider));
     }
-
-
 
     @GetMapping("/{id}/exists")
     public ResponseEntity<Boolean> userExists(@PathVariable UUID id) {
@@ -94,4 +86,17 @@ public class profileController {
         return ResponseEntity.ok(profile);
     }
 
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUserProfile(@PathVariable UUID userId, Authentication authentication) {
+        String authenticatedUserId = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!authenticatedUserId.equals(userId.toString()) && !isAdmin) {
+            return ResponseEntity.status(403).build();
+        }
+
+        profileService.deleteProfile(userId);
+        return ResponseEntity.noContent().build();
+    }
 }

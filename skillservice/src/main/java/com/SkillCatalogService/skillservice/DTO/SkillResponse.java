@@ -13,6 +13,7 @@ import java.util.UUID;
 public class SkillResponse {
     private UUID id;
     private UUID userId;
+    private String providerName;
     private String title;
     private String description;
     private List<String> tags;

@@ -17,7 +17,6 @@ public class ExternalServiceClient {
 
     private final WebClient webClient;
 
-
     public Map<String, Object> getUserDetails(String userId) {
         try {
             log.info(" Fetching user details for userId: {}", userId);
@@ -45,6 +44,15 @@ public class ExternalServiceClient {
                 }
                 userDetails.put("email", email);
 
+                // Extract role based on isProvider field
+                Boolean isProvider = (Boolean) response.get("isProvider");
+                String role = (isProvider != null && isProvider) ? "Mentor" : "Student";
+                userDetails.put("role", role);
+
+                // Extract location (city)
+                String city = (String) response.get("city");
+                userDetails.put("location", city != null ? city : "");
+
                 userDetails.put("id", response.get("userId"));
 
                 log.info(" Fetched user details: name={}, email={}", name, email);
@@ -70,6 +78,8 @@ public class ExternalServiceClient {
         fallback.put("id", userId.toString());
         fallback.put("name", "User " + userId.toString().substring(0, 8));
         fallback.put("email", "user-" + userId.toString().substring(0, 8) + "@example.com");
+        fallback.put("role", "User");
+        fallback.put("location", "");
         return fallback;
     }
 }

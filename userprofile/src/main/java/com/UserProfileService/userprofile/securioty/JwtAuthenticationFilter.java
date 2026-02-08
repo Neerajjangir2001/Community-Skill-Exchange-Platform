@@ -20,15 +20,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-
 import java.io.IOException;
-
 
 import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
-
-
 
 @Slf4j
 @Component
@@ -49,19 +45,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         log.debug(" Checking if filter should skip: {} {}", method, path);
 
-        // ✅ Only skip JWT for public GET endpoints
+        //  Only skip JWT for public GET endpoints
         if (!"GET".equals(method)) {
             log.debug(" Non-GET request requires auth: {} {}", method, path);
             return false;
         }
 
-        // ✅ Fixed regex pattern: single backslash for hyphen
-        boolean isPublic =
-                path.matches("/api/users/[a-fA-F0-9-]{36}/exists") ||  // UUID with /exists
-                        path.matches("/api/users/[a-fA-F0-9-]{36}") ||          // UUID only
-                        path.equals("/api/users/search") ||                     // Search endpoint
-                        path.startsWith("/actuator/") ||                        // Actuator endpoints
-                        path.startsWith("/internal/");                          // Internal endpoints
+        //  Fixed regex pattern: single backslash for hyphen
+        boolean isPublic = path.matches("/api/users/[a-fA-F0-9-]{36}/exists") || // UUID with /exists
+                path.matches("/api/users/[a-fA-F0-9-]{36}") || // UUID only
+                path.startsWith("/api/users/search") || // Search endpoint (allows query params)
+                path.startsWith("/actuator/") || // Actuator endpoints
+                path.startsWith("/internal/"); // Internal endpoints
 
         if (isPublic) {
             log.debug(" Public endpoint - skipping JWT filter: {} {}", method, path);
@@ -74,16 +69,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+            HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
 
-        log.debug("🔐 JWT filter running for: {} {}", request.getMethod(), request.getRequestURI());
+        log.debug(" JWT filter running for: {} {}", request.getMethod(), request.getRequestURI());
 
         try {
             String jwt = getJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt)) {
-                log.debug("🎫 JWT token found, validating...");
+                log.debug(" JWT token found, validating...");
 
                 Claims claims = Jwts.parserBuilder()
                         .setSigningKey(getSecretKey())
@@ -101,15 +96,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .authorities(authorities)
                         .build();
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, authorities);
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.info("✅ JWT authenticated user: {}", userId);
+                log.info(" JWT authenticated user: {}", userId);
 
             } else {
-                // ❌ No JWT token found - this should NOT happen if shouldNotFilter() works correctly
-                log.error("❌ Missing authorization header for: {} {}",
+                //  No JWT token found - this should NOT happen if shouldNotFilter() works
+                // correctly
+                log.error(" Missing authorization header for: {} {}",
                         request.getMethod(), request.getRequestURI());
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json");
@@ -118,7 +114,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception ex) {
-            log.error("❌ JWT validation failed: {}", ex.getMessage(), ex);
+            log.error(" JWT validation failed: {}", ex.getMessage(), ex);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Invalid or expired token\"}");
@@ -153,7 +149,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return authorities;
         }
 
-        log.warn("⚠️ No roles found in token claims");
+        log.warn(" No roles found in token claims");
         return authorities;
     }
 
