@@ -49,4 +49,4 @@ eureka:
         hostname: localhost
 
 server:
-  port: 8081
+  port: ${PORT:8081}

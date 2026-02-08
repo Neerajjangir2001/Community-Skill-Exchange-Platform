@@ -38,7 +38,7 @@ eureka:
         hostname: localhost
 
 server:
-  port: 8082
+  port: ${PORT:8082}
 
 
 cloudinary:

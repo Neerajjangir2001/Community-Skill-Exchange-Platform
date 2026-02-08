@@ -1,5 +1,5 @@
 [build]
-builder = "nixpacks"
+builder = "NIXPACKS"
 
 [deploy]
-startCommand = "java -jar target/*.jar"
+startCommand = "java -Dserver.port=$PORT -jar target/*.jar"

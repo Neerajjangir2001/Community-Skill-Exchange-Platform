@@ -57,7 +57,7 @@ eureka:
         hostname: localhost
 
 server:
-  port: 8086
+  port: ${PORT:8086}
 
 kafka:
   bootstrap-servers: localhost:9092

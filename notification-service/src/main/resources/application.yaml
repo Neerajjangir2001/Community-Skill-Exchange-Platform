@@ -67,7 +67,7 @@ kafka:
     skill-match-found: skill.match.found
 
 server:
-  port: 8070
+  port: ${PORT:8070}
 
 eureka:
   client:

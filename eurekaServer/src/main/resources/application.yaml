@@ -16,4 +16,4 @@ eureka:
       hostname: localhost
 
 server:
-  port: 8761
+  port: ${PORT:8761}
