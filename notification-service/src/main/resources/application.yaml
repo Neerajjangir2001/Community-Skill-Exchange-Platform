@@ -67,12 +67,12 @@ kafka:
     skill-match-found: skill.match.found
 
 server:
-  port: ${PORT:8070}
+  port: ${PORT}
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URL}
 
 logging:
   level:

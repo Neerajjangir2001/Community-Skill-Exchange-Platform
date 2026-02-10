@@ -108,7 +108,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone : http://localhost:8761/eureka/
+      defaultZone : ${EUREKA_URL}
   instance:
     prefer-ip-address: true          #  Use IP instead of hostname
     hostname: localhost
@@ -122,4 +122,4 @@ app:
 
 
 server:
-  port: ${PORT:8888}
+  port: ${PORT}

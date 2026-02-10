@@ -3,11 +3,12 @@ spring:
     name: authService
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/community-skill-db
+    url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
-
+fronted:
+  url: ${FRONTED_URL}
   jpa:
     hibernate:
       ddl-auto: update
@@ -41,7 +42,7 @@ security:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URL}
 
 
       instance:
@@ -49,4 +50,4 @@ eureka:
         hostname: localhost
 
 server:
-  port: ${PORT:8081}
+  port: ${PORT}

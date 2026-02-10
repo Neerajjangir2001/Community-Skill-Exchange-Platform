@@ -31,7 +31,7 @@ kafka:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URL}
 
       instance:
         prefer-ip-address: true          #  Use IP instead of hostname
@@ -52,4 +52,4 @@ websocket:
   endpoint: /ws
 
 server:
-  port: ${PORT:8089}
+  port: ${PORT}

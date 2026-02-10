@@ -1,0 +1,13 @@
+com/reviewService/reviewservice/dto/UserDto$UserDtoBuilder.class
+com/reviewService/reviewservice/ReviewServiceApplication.class
+com/reviewService/reviewservice/configuration/AppConfig.class
+com/reviewService/reviewservice/repository/ReviewRepository.class
+com/reviewService/reviewservice/controller/ReviewController.class
+com/reviewService/reviewservice/service/ReviewService.class
+com/reviewService/reviewservice/dto/UserDto.class
+com/reviewService/reviewservice/dto/ReviewResponse$ReviewResponseBuilder.class
+com/reviewService/reviewservice/model/Review$ReviewBuilder.class
+com/reviewService/reviewservice/dto/ReviewResponse.class
+com/reviewService/reviewservice/model/ReviewStatus.class
+com/reviewService/reviewservice/model/Review.class
+com/reviewService/reviewservice/dto/CreateReviewRequest.class
