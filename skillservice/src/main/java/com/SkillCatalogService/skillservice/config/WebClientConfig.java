@@ -1,5 +1,6 @@
 package com.SkillCatalogService.skillservice.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +15,7 @@ public class WebClientConfig {
         return WebClient.builder();
     }
 
-    @org.springframework.beans.factory.annotation.Value("${auth.service.url}")
+    @Value("${auth.service.url}")
     private String authServiceUrl;
 
     @Bean
