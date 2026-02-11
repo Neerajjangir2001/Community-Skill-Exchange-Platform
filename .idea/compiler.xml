@@ -10,7 +10,7 @@
         <module name="eurekaServer" />
         <module name="review-service" />
       </profile>
-      <profile name="Annotation profile for userprofile" enabled="true">
+      <profile name="Annotation profile for platform-parent" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
