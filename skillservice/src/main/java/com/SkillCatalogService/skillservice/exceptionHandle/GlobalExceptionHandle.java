@@ -1,8 +1,7 @@
 package com.SkillCatalogService.skillservice.exceptionHandle;
 
-
 import com.SkillCatalogService.skillservice.exceptionHandle.allExceprionHandles.*;
-import com.authService.exceptionHandler.GlobalExceptionHandler;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
@@ -21,11 +20,11 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandle {
 
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandle.class);
 
     @ExceptionHandler(UserNotFound.class)
-    public ResponseEntity<com.UserProfileService.userprofile.exceptionHandle.ErrorResponse> handleUserNotFound(UserNotFound exception){
-        com.UserProfileService.userprofile.exceptionHandle.ErrorResponse errorResponse = new com.UserProfileService.userprofile.exceptionHandle.ErrorResponse(HttpStatus.NOT_FOUND.value(), exception.getMessage());
+    public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFound exception){
+       ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.value(), exception.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
 
     }

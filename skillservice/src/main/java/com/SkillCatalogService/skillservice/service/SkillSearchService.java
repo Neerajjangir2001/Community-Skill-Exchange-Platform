@@ -1,11 +1,11 @@
 package com.SkillCatalogService.skillservice.service;
 
 import com.SkillCatalogService.skillservice.DTO.SkillResponse;
+import com.SkillCatalogService.skillservice.exceptionHandle.GlobalExceptionHandle;
 import com.SkillCatalogService.skillservice.exceptionHandle.allExceprionHandles.InvalidSearchParametersException;
 import com.SkillCatalogService.skillservice.exceptionHandle.allExceprionHandles.SearchServiceException;
 import com.SkillCatalogService.skillservice.model.Skill;
-import com.SkillCatalogService.skillservice.model.SkillStatus;
-import com.authService.exceptionHandler.GlobalExceptionHandler;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.opensearch.client.json.JsonData;
@@ -46,7 +46,7 @@ public class SkillSearchService {
     @Value("${opensearch.index}")
     private String index;
 
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandle.class);
 
     public List<SkillResponse> search(String q,
                                       List<String> tags,

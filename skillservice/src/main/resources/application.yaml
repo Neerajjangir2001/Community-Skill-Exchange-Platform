@@ -39,9 +39,11 @@ spring:
 
 
 opensearch:
-  host: localhost
-  port: 9200
-  scheme: http
+  host: ${OPENSEARCH_HOST}
+  port: ${OPENSEARCH_PORT}
+  user: ${OPENSEARCH_USERNAME}
+  password: ${OPENSEARCH_PASSWORD}
+  scheme: https
   index: skills
 
 
@@ -57,10 +59,18 @@ eureka:
         hostname: localhost
 
 server:
-  port: ${PORT}
+  port: ${PORT:8081}
 
 kafka:
-  bootstrap-servers: localhost:9092
+  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+
+  properties:
+    security.protocol: ${KAFKA_SECURITY_PROTOCOL}
+    sasl.mechanism: ${KAFKA_SASL_MECHANISM}
+    sasl.jaas.config: >
+      org.apache.kafka.common.security.scram.ScramLoginModule required
+      username="${KAFKA_USERNAME}"
+      password="${KAFKA_PASSWORD}";
   topic:
     skill-events: skill-events
     skill-updated: skill-updated
