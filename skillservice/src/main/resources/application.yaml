@@ -88,6 +88,14 @@ app:
     access-token-expiration-ms: 3600000
     refresh-token-expiration-ms: 2592000000
 
+auth:
+  service:
+    url: ${AUTH_SERVICE_URL}
+
+user:
+  profile:
+    url: ${USER_PROFILE_URL}
+
 logging:
   level:
     org.hibernate.SQL: DEBUG

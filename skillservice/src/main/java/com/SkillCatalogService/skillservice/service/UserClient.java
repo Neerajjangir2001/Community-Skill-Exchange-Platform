@@ -2,6 +2,8 @@ package com.SkillCatalogService.skillservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -18,12 +20,15 @@ public class UserClient {
 
     private final WebClient.Builder webClientBuilder;
 
+    @Value("${user.profile.url}")
+    private String userProfileUrl;
+
     @SuppressWarnings("unchecked")
     public Map<String, Object> getUserDetails(UUID userId) {
         try {
             return webClientBuilder.build()
                     .get()
-                    .uri("http://USERPROFILE/api/users/{id}", userId)
+                    .uri(userProfileUrl + "/api/users/{id}", userId)
                     .retrieve()
                     .bodyToMono(Map.class)
                     .block();
@@ -42,7 +47,7 @@ public class UserClient {
 
             return webClientBuilder.build()
                     .get()
-                    .uri("http://USERPROFILE/api/users/search?keyword={keyword}", keyword)
+                    .uri(userProfileUrl + "/api/users/search?keyword={keyword}", keyword)
                     .retrieve()
                     .bodyToMono(List.class)
                     .block();

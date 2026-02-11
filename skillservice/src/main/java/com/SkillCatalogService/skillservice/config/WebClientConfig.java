@@ -14,9 +14,12 @@ public class WebClientConfig {
         return WebClient.builder();
     }
 
+    @org.springframework.beans.factory.annotation.Value("${auth.service.url}")
+    private String authServiceUrl;
+
     @Bean
     public WebClient authServiceWebClient(WebClient.Builder webClientBuilder) {
-        return webClientBuilder().baseUrl("http://AUTHSERVICE").build();
+        return webClientBuilder().baseUrl(authServiceUrl).build();
     }
 
 }
